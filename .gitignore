@@ -4,3 +4,9 @@
 CS465_Computer_Systems_Architecture/
 powerlevel10k~/
 game_study/
+*.zsh
+*.zwc
+.cache/p10k-owner/prompt-61
+vimfiles/.netrwhist
+vimfiles/.netrwhist~
+_viminfo
