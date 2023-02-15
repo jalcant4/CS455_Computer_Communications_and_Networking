@@ -10,3 +10,7 @@ game_study/
 vimfiles/.netrwhist
 vimfiles/.netrwhist~
 _viminfo
+.zshrc
+.histfile
+.zcompdump
+CS468_Secure_Programming_and_Systems/
