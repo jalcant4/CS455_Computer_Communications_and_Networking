@@ -16,6 +16,7 @@ srand(time(&t));
 
 static int ID = rand() % 65536;
 
+//header
 typedef struct header {
 	int id; 	//ID: A 16-bit id that can uniquely identify a query message. Note that when you send multiple query
 				//messages, you will use this ID to match the responses to queries. The ID can be randomly generated
@@ -30,6 +31,14 @@ typedef struct header {
 	int nscount;
 	int arcount;
 } header_t = {ID, 0, 0, 0, 1, 1, 0, 0, 0};
+
+//query
+typedef struct query {
+	  char *name;
+	  int dnstype;
+	  int dnsclass;
+} query_t;
+
 
 int main {
 	
