@@ -126,9 +126,9 @@ def sendQuery(DnsQueryMessage,ip):
 #arg r      response    
 def readResponse(r) :
     response_length = len(r)
-    domain_size = r[12] * 256 + r[13]
+    domain_size = r[11] * 256 + r[12]
     dns_dict = dict (
-        id = r[0] + r[1],
+        id = r[0] * 256 + r[1],
         qr =    bool(r[2] & int('10000000', 2)),
         opcode =    (r[2] & int('01111000', 2)) >> 3,
         aa =    bool(r[2] & int('00000100', 2)),
@@ -139,12 +139,12 @@ def readResponse(r) :
         ad =    bool(r[3] & int('00100000', 2)),
         cd =    bool(r[3] & int('00010000', 2)),
         rcode = bool(r[3] & int('00001111', 2)),
-        qdcount = r[4] + r[5],
-        ancount = r[6] + r[7],
-        nscount = r[8] + r[9],
+        qdcount = r[4] * 256 + r[5],
+        ancount = r[6] * 256 + r[7],
+        nscount = r[8] * 256 + r[9],
         arcount = domain_size,
-        qtype = r[1 - 4] + r[1 - 3],
-        qclass = r[1 - 2] + r[1 - 2]
+        qtype = r[1 - 4] * 256 + r[1 - 3],
+        qclass = r[1 - 2] * 256  + r[1 - 2]
     )
     return
 
