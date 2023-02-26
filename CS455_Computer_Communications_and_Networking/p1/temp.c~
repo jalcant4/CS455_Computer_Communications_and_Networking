@@ -9,13 +9,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 #include <sys/socket.h>
+
+#define MAX 100
 
 time_t t;
 srand(time(&t));
 
 static int ID = rand() % 65536;
 
+//header
 typedef struct header {
 	int id; 	//ID: A 16-bit id that can uniquely identify a query message. Note that when you send multiple query
 				//messages, you will use this ID to match the responses to queries. The ID can be randomly generated
@@ -29,9 +33,42 @@ typedef struct header {
 	int ancount;
 	int nscount;
 	int arcount;
-} header_t = {ID, 0, 0, 0, 1, 1, 0, 0, 0};
+} header_t;
+#define INIT_HEADER(X) header_t X = {ID, 0, 0, 0, 1, 1, 0, 0, 0};
+
+//query
+typedef struct query {
+	  char name[MAX];
+	  int dnstype;
+	  int dnsclass;
+} query_t;
+#define INIT_QUERY(X, Y) query_t X = {.name = Y, 0, 0}
+
+static INIT_HEADER(header);
+static INIT_QUERY(query, "none");
+
+char *parse_qname(char *host);
+int *init_dns_request();
 
 int main {
+	
+}
+
+int *parse_qname(char *hostname) {
+	if (hostname == NULL) { 
+		
+		exit(1);
+	}
+	header_t *pq = &query;
+	// it contains multiple labels - one for each section of a URL. For example, for gmu.edu, there should
+	// be two labels for gmu and edu. Each label consists of a length octet (3 for gmu), followed by ASCII code
+	// octets (67 for g, 6D for m, 75 for u). This is repeated for each label of the URL. The QNAME terminates with
+	// the zero length octet for the null label of the root. Note that this field may be an odd number of octets; no
+	// padding is used
+	query->
+}
+
+int* init_dns_request() {
 	
 }
 
