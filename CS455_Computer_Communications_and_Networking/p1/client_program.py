@@ -9,8 +9,8 @@ port = 53
 #Read the hostname provided by a user, Extract the host name.
 def readHostNameFromUser():
     if len(sys.argv) < 3:
-        name = sys.argv[1]
-        hostname = str(name)
+        name = sys.argv[1]                       
+        hostname = str(name).lower()                   
     else:
         print("\nSingle Hostname Expected, Try Again\n")
         exit()
@@ -83,18 +83,17 @@ def sendQuery(DnsQueryMessage,ip):
     print("Contacting DNS server..")
     print("Sending DNS query..")
     
-    attempts = 0
+    attempts = 1
     
     while(1):
-        attempts += 1
         if(attempts > 3):
             break
         else:
+            print("Entering Connection Sending DNS Message")
             client_socket.settimeout(5.0)
             client_socket.sendto(binascii.unhexlify(DnsQueryMessage),(ip,port))
             data,addr = client_socket.recvfrom(4096)
-            break
-    
+            attempts +=1
     client_socket.close()
     
             
