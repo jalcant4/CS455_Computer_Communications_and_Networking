@@ -1,3 +1,6 @@
+#   written by Amit Khadka G01245732
+#   written by Jed Mendoza G00846927
+#   last edited 02/26/23
 
 import sys
 import socket
@@ -86,23 +89,23 @@ def sendQuery(DnsQueryMessage,ip):
     attempts = 1
     
     while(1):
-        if(attempts > 3):
-            print("Error: Timeout")
-            break
-            
-        else:
-            print("DNS response received (attempt " + str(attempts) + " of 3)")
-            print("Entering Connection Sending DNS Message")
+        try:    
             client_socket.settimeout(5.0)
             client_socket.sendto(binascii.unhexlify(DnsQueryMessage),(ip,port))
             data,addr = client_socket.recvfrom(4096)
+            break    
+        except Exception as e:
+            print("Error connecting")
             attempts +=1
-            
+    
+    if(attempts > 3):
+        print("Error: Timeout")  
+    elif (attempts <= 3):
+        print("DNS response received (attempt " + str(attempts) + " of 3)")
+    
     client_socket.close()
            
     return binascii.hexlify(data).decode("utf-8")
-
-
 
 def string_to_int(txt):
   number = 0
@@ -110,10 +113,17 @@ def string_to_int(txt):
     number = (number << 8) + ord(c)
   return number
 
-
+def rdata_to_ip_address(rdata):
+    ip_address = ""
+    for i in range(0, 8, 2):
+        ip_address += str((int(rdata[i], 16) << 4) + int(rdata[i + 1], 16)) + '.'
+    ip_address = ip_address[0 : len(ip_address) -1]
+    return ip_address
 
 #arg r      response    
 def readResponse(r) :
+    print ("Message: ", r)
+    
     response_length = len(r)
     domain_size = r[11] * 256 + r[12]
     parsed_r = {
@@ -134,7 +144,16 @@ def readResponse(r) :
         "qname" : r[24: 24 + r[24:len(r)+1].find('00') + 2],
         "qtype" : r[24 + r[24:len(r)+1].find('00') + 2 : 24 + r[24:len(r)+1].find('00') + 6],
         "qclass" : r[24 + r[24:len(r)+1].find('00') + 6 : 24 + r[24:len(r)+1].find('00') + 10],
-        "name" : r[24 + r[24:len(r)+1].find('00') + 2][0:4]
+        #answer
+        "a_index" : 24 + r[24:len(r)+1].find('00') + 10
+    }
+    r_answer = {
+        "name" :        r[parsed_r.get("a_index"): parsed_r.get("a_index") + 4],
+        "type" :        r[parsed_r.get("a_index") + 4: parsed_r.get("a_index") + 8],
+        "class" :       r[parsed_r.get("a_index") + 8: parsed_r.get("a_index") + 12],
+        "ttl" :         r[parsed_r.get("a_index") + 12: parsed_r.get("a_index") + 20],
+        "rdlength" :    r[parsed_r.get("a_index") + 20: parsed_r.get("a_index") + 24],
+        "rdata" :       r[parsed_r.get("a_index") + 24: parsed_r.get("a_index") + 32]
     }
     print("header.id = ", parsed_r.get("id"))
     print("header.qr = ", parsed_r.get("qr"))
@@ -152,7 +171,15 @@ def readResponse(r) :
     print("header.qname = ", parsed_r.get("qname"))
     print("header.qtype = ", parsed_r.get("qtype"))
     print("header.qclass = ", parsed_r.get("qclass"))
-    print("answer.name = ", parsed_r.get("name"))
+    print("answer.name = ", r_answer.get("name"))
+    print("answer.type = ", r_answer.get("type"))
+    print("answer.class = ", r_answer.get("class"))
+    print("answer.ttl = ", r_answer.get("ttl"))
+    print("answer.rdlength = ", r_answer.get("rdlength"))
+    print("answer.rdata = ", r_answer.get("rdata"))
+    print("Resolved ip adderss = ", rdata_to_ip_address(r_answer.get("rdata")))
+    
+    
     return
 
 hostname = readHostNameFromUser()
