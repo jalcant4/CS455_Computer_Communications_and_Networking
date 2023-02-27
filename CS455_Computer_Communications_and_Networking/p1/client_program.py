@@ -87,39 +87,28 @@ def sendQuery(DnsQueryMessage,ip):
     
     while(1):
         if(attempts > 3):
+            print("Error: Timeout")
             break
+            
         else:
+            print("DNS response received (attempt " + str(attempts) + " of 3)")
             print("Entering Connection Sending DNS Message")
             client_socket.settimeout(5.0)
             client_socket.sendto(binascii.unhexlify(DnsQueryMessage),(ip,port))
             data,addr = client_socket.recvfrom(4096)
             attempts +=1
-    client_socket.close()
-    
             
-        
-    
+    client_socket.close()
+           
     return binascii.hexlify(data).decode("utf-8")
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+def string_to_int(txt):
+  number = 0
+  for c in txt:
+    number = (number << 8) + ord(c)
+  return number
 
 
 
@@ -129,25 +118,27 @@ def readResponse(r) :
     domain_size = r[11] * 256 + r[12]
     dns_dict = dict (
         id = r[0] * 256 + r[1],
-        qr =    bool(r[2] & int('10000000', 2)),
-        opcode =    (r[2] & int('01111000', 2)) >> 3,
-        aa =    bool(r[2] & int('00000100', 2)),
-        tc =    bool(r[2] & int('00000010', 2)),
-        rd =    bool(r[2] & int('00000001', 2)),
-        ra =    bool(r[3] & int('10000000', 2)),
-        z =     bool(r[3] & int('01000000', 2)),
-        ad =    bool(r[3] & int('00100000', 2)),
-        cd =    bool(r[3] & int('00010000', 2)),
-        rcode = bool(r[3] & int('00001111', 2)),
-        qdcount = r[4] * 256 + r[5],
-        ancount = r[6] * 256 + r[7],
-        nscount = r[8] * 256 + r[9],
+        qr =    bool(string_to_int(r[2]) & int('10000000', 2)),
+        opcode =    (string_to_int(r[2]) & int('01111000', 2)) >> 3,
+        aa =    bool(string_to_int(r[2]) & int('00000100', 2)),
+        tc =    bool(string_to_int(r[2]) & int('00000010', 2)),
+        rd =    bool(string_to_int(r[2]) & int('00000001', 2)),
+        ra =    bool(string_to_int(r[3]) & int('10000000', 2)),
+        z =     bool(string_to_int(r[3]) & int('01000000', 2)),
+        ad =    bool(string_to_int(r[3]) & int('00100000', 2)),
+        cd =    bool(string_to_int(r[3]) & int('00010000', 2)),
+        rcode = bool(string_to_int(r[3]) & int('00001111', 2)),
+        qdcount = string_to_int(r[4]) * 256 + string_to_int(r[5]),
+        ancount = string_to_int(r[6]) * 256 + string_to_int(r[7]),
+        nscount = string_to_int(r[8]) * 256 + string_to_int(r[9]),
         arcount = domain_size,
-        qtype = r[1 - 4] * 256 + r[1 - 3],
-        qclass = r[1 - 2] * 256  + r[1 - 2]
+        #question
+        #qname
+        qtype = 1,
+        qclass = 1
     )
     return
 
 hostname = readHostNameFromUser()
 DnsQueryMessage = DnsQuery(hostname)
-messageRec = sendQuery(DnsQueryMessage,ip)
+readResponse(sendQuery(DnsQueryMessage,ip))
