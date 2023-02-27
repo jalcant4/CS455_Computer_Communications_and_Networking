@@ -116,27 +116,43 @@ def string_to_int(txt):
 def readResponse(r) :
     response_length = len(r)
     domain_size = r[11] * 256 + r[12]
-    dns_dict = dict (
-        id = r[0] * 256 + r[1],
-        qr =    bool(string_to_int(r[2]) & int('10000000', 2)),
-        opcode =    (string_to_int(r[2]) & int('01111000', 2)) >> 3,
-        aa =    bool(string_to_int(r[2]) & int('00000100', 2)),
-        tc =    bool(string_to_int(r[2]) & int('00000010', 2)),
-        rd =    bool(string_to_int(r[2]) & int('00000001', 2)),
-        ra =    bool(string_to_int(r[3]) & int('10000000', 2)),
-        z =     bool(string_to_int(r[3]) & int('01000000', 2)),
-        ad =    bool(string_to_int(r[3]) & int('00100000', 2)),
-        cd =    bool(string_to_int(r[3]) & int('00010000', 2)),
-        rcode = bool(string_to_int(r[3]) & int('00001111', 2)),
-        qdcount = string_to_int(r[4]) * 256 + string_to_int(r[5]),
-        ancount = string_to_int(r[6]) * 256 + string_to_int(r[7]),
-        nscount = string_to_int(r[8]) * 256 + string_to_int(r[9]),
-        arcount = domain_size,
+    parsed_r = {
+        "id" :      r[0:4],
+        "qr" :      int(r[4:5]) >> 3,    
+        "opcode" :  (int(r[4:5]) << 4 + int(r[5:6])) & 0x78 >> 3,   #0b1000 0001 & 0b0111 1000
+        "aa" :      (int(r[5:6]) & 4) >> 2,
+        "tc" :      (int(r[5:6]) & 2) >> 1,
+        "rd" :      int(r[5:6]) & 1,
+        "ra" :      int(r[6:7]) >> 3,
+        "z" :       int(r[6:7]) & 7,
+        "rcode" :   int(r[7:8]) & 0xF,
+        "qdcount" : (r[8:12]),
+        "ancount" : (r[12:16]),
+        "nscount" : (r[16:20]),
+        "arcount" : (r[20:24]),
         #question
-        #qname
-        qtype = 1,
-        qclass = 1
-    )
+        "qname" : r[24: 24 + r[24:len(r)+1].find('00') + 2],
+        "qtype" : r[24 + r[24:len(r)+1].find('00') + 2 : 24 + r[24:len(r)+1].find('00') + 6],
+        "qclass" : r[24 + r[24:len(r)+1].find('00') + 6 : 24 + r[24:len(r)+1].find('00') + 10],
+        "name" : r[24 + r[24:len(r)+1].find('00') + 2][0:4]
+    }
+    print("header.id = ", parsed_r.get("id"))
+    print("header.qr = ", parsed_r.get("qr"))
+    print("header.opcode = ", parsed_r.get("opcode"))
+    print("header.aa = ", parsed_r.get("aa"))
+    print("header.tc = ", parsed_r.get("tc"))
+    print("header.rd = ", parsed_r.get("rd"))
+    print("header.ra = ", parsed_r.get("ra"))
+    print("header.z = ", parsed_r.get("z"))
+    print("header.rcode = ", parsed_r.get("rcode"))
+    print("header.qdcount = ", parsed_r.get("qdcount"))
+    print("header.ancount = ", parsed_r.get("ancount"))
+    print("header.nscount = ", parsed_r.get("nscount"))
+    print("header.arcount = ", parsed_r.get("arcount"))
+    print("header.qname = ", parsed_r.get("qname"))
+    print("header.qtype = ", parsed_r.get("qtype"))
+    print("header.qclass = ", parsed_r.get("qclass"))
+    print("answer.name = ", parsed_r.get("name"))
     return
 
 hostname = readHostNameFromUser()
