@@ -1,6 +1,6 @@
 Here is how to compile the program:
 a. Open up the terminal
-b. The python run file is on the ...............folder
+b. The python run file is on the cs455_pa1_akhadka3_jalcant4 folder
 c  Navigate to the folder
 d. Run the $python3 “my-dns-client <host-name>” command.
 e. $python3 client_program.py cnn.com 
