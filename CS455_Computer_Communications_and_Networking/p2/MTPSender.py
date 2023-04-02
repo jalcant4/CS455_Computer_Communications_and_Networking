@@ -10,6 +10,7 @@ import zlib
 import socket
 import sys
 import Timer
+import time
 
 
 PACKET_SIZE = 1456
@@ -23,7 +24,6 @@ sender_log = None
 packet_timeout = Timer(0.5)
 
 ## we will need a lock to protect against two concurrent threads
-lock = threading.Lock()
 mutex = threading.Lock()
 
 def int_to_bytes(i):
@@ -61,7 +61,7 @@ def extract_packet_info(packet):
 	seq_num = bytes_to_int(mtp_header[4:8])
 	data_length = bytes_to_int(mtp_header[8:12])
 	checksum = bytes_to_int(mtp_header[12:16])
-	return type_data, seq_num, data_length, checksum
+	return type_data, seq_num, data_length, checksum, packet[16:].decode('utf-8')
 
 
 def receive_thread(s_socket):
@@ -96,14 +96,9 @@ def receive_thread(s_socket):
 				if packet_timeout is not None:
 					packet_timeout.stop()
 				mutex.release()
-					
      
-
-     
-
-#elif window_base < next_seq_num:
        	
-def decode_header(packet):
+def parse_header(packet):
     type_data, seq_num, data_length, checksum = extract_packet_info(packet)
     return "type_data= {}; seqNum = {}; data_length = {}; checksum = {}".format(
         type_data, seq_num, data_length, hex(checksum)[2:]
@@ -116,7 +111,8 @@ def main():
     # read the command line arguments
 	# open UDP socket
 	reciever_ip = sys.argv[1]
-	reciever_port = sys.argv[2]
+	reciever_port = int(sys.argv[2])
+	max_window_size = int(sys.argv[3])
 	read_log_name = sys.argv[4]
 	sender_log_name = sys.argv[5]
  
@@ -127,15 +123,56 @@ def main():
 	sender_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	receiver_address = (reciever_ip, reciever_port)
 	
+	# take the input file and split it into packets (use create_packet)
+	packets = []
+	counter = 0
+	while True:
+		segment = read_log.read(PACKET_SIZE)
+		if segment == '' or segment is None:
+			break
+		packets.append(create_packet(segment, counter))
+		counter +=1
+
+	final_packet = len(packets)
+
 	# start receive thread (modify as needed) which receives ACKs
 	recv_thread = threading.Thread(target=receive_thread,args=(socket,))
 	recv_thread.start()
 
-    # your main thread can act as the send thread which sends data packets
-    
-	# take the input file and split it into packets (use create_packet)
-
 	# while there are packets to send:
 		# send packets to receiver using our unreliable_channel.send_packet()
 		# update the window size, timer, etc.
+	while window_base < final_packet:
+		a = window_base + max_window_size
+		b = next_seq_number < final_packet
+		
+		mutex.acquire()
+		while a and b:
+			#sender_log_file.write("Sending packet with seqNum: {} \n". format(next_seq_number))
+			unreliable_channel.send_packet(sender_socket, packets[next_seq_number], receiver_address)
+
+			#log the sender packate info into
+			sender_log.write("Packet sent; {}\n". format(parse_header(packets[next_seq_number])))
+
+			next_seq_number += 1
+		packet_timeout.start()
+		mutex.release()
+		
+  		# Yield to other threads
+		while packet_timeout.is_running() and packet_timeout.timeout() is False:
+			time.sleep(0)
+		
+		mutex.acquire()
+		# did not successfully received ack, update window_base
+		if packet_timeout.timeout():  
+			sender_log.write("Timeout while waiting for packet with seqNum: {}. Updating the next_seq_num from {} to {} \n". format(
+				window_base, next_seq_number, window_base))
+			next_seq_number = window_base
+		mutex.release()
+  
+	sender_log.write("Final packet sent : {next_seq_number}\n")
+	unreliable_channel.send_packet(sender_socket, create_packet('', next_seq_number), receiver_address)
+     
+# your main thread can act as the send thread which sends data packets  
+main()
 
