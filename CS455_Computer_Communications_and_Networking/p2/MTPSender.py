@@ -8,6 +8,8 @@ import threading
 import unreliable_channel
 import zlib
 import socket
+import sys
+import Timer
 
 
 PACKET_SIZE = 1456
@@ -17,15 +19,17 @@ window_size = 0
 max_window_size = 0
 dup_ack_count = 0
 next_seq_number = 0
-
-mutex = threading.Lock()
-
 sender_log = None
+packet_timeout = Timer(0.5)
+
+## we will need a lock to protect against two concurrent threads
+lock = threading.Lock()
+mutex = threading.Lock()
 
 def int_to_bytes(i):
 	return np.int64(i).tobytes()
 
-def bytes_to_int (b):
+def bytes_to_int(b):
 	return np.frombuffer(b, dtype=np.uint32)[0]
 
 def calc_checksum(b1, b2, b3):
@@ -37,9 +41,8 @@ def calc_checksum(b1, b2, b3):
 		checksum = zlib.crc32(b1+b2+b3)
 	return int_to_bytes(checksum)
 
-## we will need a lock to protect against two concurrent threads
-lock = threading.Lock()
-
+def getCurrWindowSize(totalpackets, window_size):
+    return min(window_size, totalpackets - window_base + 1)
 
 def create_packet(data, seq_num):
 # create data packet
@@ -75,16 +78,55 @@ def receive_thread(s_socket):
 			break
 		validate_checksum = bytes_to_int(calc_checksum(type_data, next_seq_num, data_length))
 		if checksum != validate_checksum:
-			sender_log.write()
-def decode_header(..):
-    return
+			sender_log.write("Packet received; type=%s; seqNum=%d; length=%d; checksum_in_packet=%s; checksum_calculated=%s; status=CORUPT;",type_data, next_seq_num, data_length, checksum, validate_checksum)
+		elif checksum == validate_checksum:
+			if window_base == next_seq_num:
+				dup_ack_count += 1
+				if dup_ack_count == 3:
+					mutex.acquire()
+					next_seq_num = window_base
+					dup_ack_count = 0
+					sender_log.write("Triple Dup ACK detect")
+					mutex.release()
+			if window_base < next_seq_num:
+				mutex.acquire()
+				sender_log.write("")
+				window_base = next_seq_num
+				#TODO timeout
+				if packet_timeout is not None:
+					packet_timeout.stop()
+				mutex.release()
+					
+     
 
-def main(..):
+     
+
+#elif window_base < next_seq_num:
+       	
+def decode_header(packet):
+    type_data, seq_num, data_length, checksum = extract_packet_info(packet)
+    return "type_data= {}; seqNum = {}; data_length = {}; checksum = {}".format(
+        type_data, seq_num, data_length, hex(checksum)[2:]
+    )
+    
+
+def main():
 	# some of the things to do:
     # open log file and start logging
     # read the command line arguments
 	# open UDP socket
-
+	reciever_ip = sys.argv[1]
+	reciever_port = sys.argv[2]
+	read_log_name = sys.argv[4]
+	sender_log_name = sys.argv[5]
+ 
+	# open log file and start logging
+	sender_log = open(sender_log_name, "w+")
+	read_log = open(read_log_name, "r")
+ 
+	sender_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	receiver_address = (reciever_ip, reciever_port)
+	
 	# start receive thread (modify as needed) which receives ACKs
 	recv_thread = threading.Thread(target=receive_thread,args=(socket,))
 	recv_thread.start()
