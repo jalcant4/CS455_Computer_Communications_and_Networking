@@ -7,7 +7,7 @@ import threading
 import unreliable_channel
 import numpy as np
 import zlib
-import Timer
+from Timer import Timer
 import time
 import socket
 import sys
@@ -90,7 +90,7 @@ def send_thread(socket):
             receiver_log.write("Corrupted data while receiving packet with seqNum: {} \n".format(seqNum))
 		# done with receiving packets
         else : 
-            receiver_log.write("Successfuly recieved the packet with seqNum: {} \n".format(seqNum))
+            receiver_log.write("Packets received with seqNum: {} \n".format(seqNum))
 
             if seqNum > expected_seq_num:
                 receiver_log.write("Package with seqNum: {} out of order while expecting seq: {} Sending dup ack with seqNum : {}. \n".format(seqNum, expected_seq_num, expected_seq_num))

@@ -9,7 +9,7 @@ import unreliable_channel
 import zlib
 import socket
 import sys
-import Timer
+from Timer import Timer
 import time
 
 
@@ -78,7 +78,7 @@ def receive_thread(s_socket):
 			break
 		validate_checksum = bytes_to_int(calc_checksum(type_data, next_seq_num, data_length))
 		if checksum != validate_checksum:
-			sender_log.write("Packet received; type=%s; seqNum=%d; length=%d; checksum_in_packet=%s; checksum_calculated=%s; status=CORUPT;",type_data, next_seq_num, data_length, checksum, validate_checksum)
+			sender_log.write(f"Packet received; type={type_data}; seqNum={next_seq_num}; length={data_length}; checksum_in_packet={checksum}; checksum_calculated={validate_checksum}; status=CORRUPT;")
 		elif checksum == validate_checksum:
 			if window_base == next_seq_num:
 				dup_ack_count += 1
@@ -86,11 +86,12 @@ def receive_thread(s_socket):
 					mutex.acquire()
 					next_seq_num = window_base
 					dup_ack_count = 0
-					sender_log.write("Triple Dup ACK detect")
+					sender_log.write("Triple Dup ACK received from sequence number: {window_base}")
 					mutex.release()
 			if window_base < next_seq_num:
 				mutex.acquire()
-				sender_log.write("")
+				next_seq_num -= 1
+				sender_log.write("Acks received from the receiver for the seqeuence number {next_seq_num}.\n Udaating window from {window_base} to {nex_seq_num}\n")
 				window_base = next_seq_num
 				#TODO timeout
 				if packet_timeout is not None:
@@ -110,6 +111,7 @@ def main():
     # open log file and start logging
     # read the command line arguments
 	# open UDP socket
+	global next_seq_number
 	reciever_ip = sys.argv[1]
 	reciever_port = int(sys.argv[2])
 	max_window_size = int(sys.argv[3])
@@ -143,11 +145,12 @@ def main():
 		# send packets to receiver using our unreliable_channel.send_packet()
 		# update the window size, timer, etc.
 	while window_base < final_packet:
-		a = window_base + max_window_size
-		b = next_seq_number < final_packet
+		#a = window_base > max_window_size
+		#b = next_seq_number < final_packet
 		
 		mutex.acquire()
-		while a and b:
+		#while a and b:
+		while window_base > max_window_size and next_seq_number < final_packet:
 			#sender_log_file.write("Sending packet with seqNum: {} \n". format(next_seq_number))
 			unreliable_channel.send_packet(sender_socket, packets[next_seq_number], receiver_address)
 
@@ -165,8 +168,7 @@ def main():
 		mutex.acquire()
 		# did not successfully received ack, update window_base
 		if packet_timeout.timeout():  
-			sender_log.write("Timeout while waiting for packet with seqNum: {}. Updating the next_seq_num from {} to {} \n". format(
-				window_base, next_seq_number, window_base))
+			sender_log.write("Timeout while waiting for packet with seqNum: {}. Updating the next_seq_num from {} to {} \n". format(window_base, next_seq_number, window_base))
 			next_seq_number = window_base
 		mutex.release()
   

@@ -5,7 +5,7 @@ class Timer:
     # The duration parameter sets the duration of the timer in seconds. 
     # The optional callback parameter sets the function to be executed 
     #   when the timer completes.
-    def __init__(self, duration, callback == None):
+    def __init__(self, duration, callback = None):
         self.start_time = 0
         self.duration = duration
         self.callback = callback
