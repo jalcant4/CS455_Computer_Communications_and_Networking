@@ -191,13 +191,13 @@ def send_thread(sender_socket, packets):
 def main():
 	global sender_socket, sender_address, packets, receiver_address, window_size, input, sender_log
     # read the command line arguments
-	reciever_ip = sys.argv[1]
-	reciever_port = int (sys.argv[2])
+	reciever_ip = sys.argv[0]
+	reciever_port = int (sys.argv[1])
 	receiver_address = (reciever_ip, reciever_port)
-	window_size = int (sys.argv[3])
+	window_size = int (sys.argv[2])
 	# open log file and start logging
-	input = open (sys.argv[4], "w+")
-	sender_log = open (sys.argv[5], "r")
+	input = open (sys.argv[3], "w+")
+	sender_log = open (sys.argv[4], "r")
 
 
 	# open the UDP socket
@@ -225,8 +225,8 @@ def main():
      # while there are packets to send:
 	# send packets to receiver using our unreliable_channel.send_packet()
 	# update the window size, timer, etc.
-	send_thread = threading.Thread(target=send_thread, args=(sender_socket, packets))
-	send_thread.start()
+	snd_thread = threading.Thread(target=send_thread, args=(sender_socket, packets))
+	snd_thread.start()
 # your main thread can act as the send thread which sends data packets  
 main()
 

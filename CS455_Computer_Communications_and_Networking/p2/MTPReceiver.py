@@ -110,57 +110,11 @@ def receive_thread(receiver_socket):
         # send ack packets but using unreliable channel
         packet, sender_addr = unreliable_channel.recv_packet(receiver_socket)
         extract_packet(packet)
-
-        if data == '' or data is None: 
-            break
-
-		#log recieved file on file
-        receiver_log.write("Packet recieved; {} \n".format(validate_header(packet_from_server, calc_checksum(type_data, seqNum, data_length))))
-
-		#check for corrupted data
-        if checksum != bytes_to_int(calc_checksum(type_data, seqNum, data_length)):
-            receiver_log.write("Corrupted data while receiving packet with seqNum: {} \n".format(seqNum))
-		# done with receiving packets
-        else : 
-            receiver_log.write("Packets received with seqNum: {} \n".format(seqNum))
-
-            if seqNum > expected_seq_num:
-                receiver_log.write("Package with seqNum: {} out of order while expecting seq: {} Sending dup ack with seqNum : {}. \n".format(seqNum, expected_seq_num, expected_seq_num))
-                send_ack()
-            else: 
-                expected_seq_num = seqNum + 1
-                out_txt.write(data)
-                if ack_timeout_timer is not None and ack_timeout_timer.is_alive() : 
-					# was waiting for second packet and got it 
-                    ack_timeout_timer.cancel()
-                    send_ack()
-                else :
-                    ack_timeout_timer = threading.Timer(500, send_ack)
-                    ack_timeout_timer.start()
-    return data
-
-
-def main():
-    # Some of the things to do:
-    # open log file and start logging
-	# read the command line arguments
-	# open UDP socket
-    receiver_ip = sys.argv[1]
-    receiver_port = int(sys.argv[2])
-    out_txt = sys.argv[3]
-    receiver_log = sys.argv[4]
-    
-    receiver_log = open(receiver_log,'w+')
-    out_txt = open(out_txt, 'w+')
-    receiver_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    print("Establishing Connection........")
-    
-    receiver_socket.bind(receiver_ip,receiver_port)
-    
-    #start the timer
-    if timer is None:
-        timer = Timer(ack_timeout, send_ack, args=(expected_seq_number, sender_addr))
-        timer.start()
+        
+         #start the timer
+        if timer is None:
+            timer = Timer(ack_timeout, send_ack, args=(expected_seq_number, sender_addr))
+            timer.start()
         
         #checks for next packet
         while not timer.timeout():
@@ -197,8 +151,8 @@ def main():
     server_address = (receiver_ip, receiver_port)
     receiver_socket.bind(server_address)
 
-    receive_thread = threading.Thread(target=receive_thread, args=(receiver_socket,))
-    receive_thread.start()    
+    rcv_thread = threading.Thread(target=receive_thread, args=(receiver_socket,))
+    rcv_thread.start()    
 
 # your main thread can act as the receive thread that receives DATA packets
 main()

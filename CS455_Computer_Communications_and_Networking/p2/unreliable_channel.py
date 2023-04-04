@@ -15,7 +15,7 @@ def recv_packet(socket):
     received_data, recv_addr = socket.recvfrom(1472)
     #corrupt the packet
     if random.random()>probability:
-        received_data+="corrupted!"
+        received_data+=b'corrupted!'
     return received_data,recv_addr
 
 
