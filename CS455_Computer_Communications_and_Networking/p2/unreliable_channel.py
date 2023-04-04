@@ -21,5 +21,5 @@ def recv_packet(socket):
 
 def send_packet(socket,packet,recv_addr):
     #drop the packet 5% of the time
-    if random.random()<probability:
+    if random.random() < probability:
         socket.sendto(packet,recv_addr)
