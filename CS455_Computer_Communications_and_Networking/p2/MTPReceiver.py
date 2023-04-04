@@ -64,7 +64,7 @@ def create_ack_packet(seq_num):
     # crc32 available through zlib library
     packet_type = b'ACK'
     seq_num = int_to_bytes(seq_num)
-    data_length = int_to_bytes(len(data))
+    data_length = int_to_bytes(len(data) + MTP_HEADER_SIZE)
     checksum = calc_checksum(type_data, seq_num, data_length, data)
     
     ack_packet = packet_type + seq_num + data_length + checksum

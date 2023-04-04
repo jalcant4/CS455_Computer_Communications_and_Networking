@@ -22,9 +22,15 @@ MAX_DUP_ACKS = 3
 # define and initialize
 sender_ip = None
 sender_port = None
+sender_address = None
+sender_socket = None
+
 sender_log = None
 output = None
-packet_timeout = None
+
+receiver_address = None
+receiver_socket = None
+
 final_packet = None
 
 window_base = 0
@@ -62,24 +68,28 @@ def calc_checksum(type_data, seq_num, data_length, data):
     checksum = zlib.crc32(type_data + seq_num + data_length + data)
     return int_to_bytes(checksum)
 
-def getCurrWindowSize(totalpackets, window_size):
-    return min(window_size, totalpackets - window_base + 1)
+def update_window(window):
+	global window_base
+	with lock:
+		window_base = window
+		window = window_base + window_size
+
 
 # MTP DATA packet looks as shown below. Note that your MTP header + data is encapsulated in the UDP
 # header since the sender and receiver connect over a UDP socket. Of course, the UDP header is already
 # added by the socket and is something that you don’t have to implement.
-def create_packet(data, seq_num):
+def create_data_packet(data, seq_num):
 	# create data packet
 	# crc32 available through zlib library
 	type_data = b'DATA'  
 	seq_num = int_to_bytes(seq_num)
-	data_length = int_to_bytes(len(data))
+	data_length = int_to_bytes(len(data) + MTP_HEADER_SIZE)
 	checksum = calc_checksum(type_data, seq_num, data_length, data)
 	data = bytes(data, 'utf-8')
 	return type_data + seq_num + data_length + checksum + data
 
+
 def extract_packet_info(packet):
-	# extract the ack after receiving
 	mtp_header = packet[0:MTP_HEADER_SIZE]
 	type_data = bytes_to_int(mtp_header[0:4])
 	seq_num = bytes_to_int(mtp_header[4:8])
@@ -87,14 +97,8 @@ def extract_packet_info(packet):
 	checksum = bytes_to_int(mtp_header[12:16])
 
 	return type_data, seq_num, data_length, checksum
-       	
-def parse_header(packet):
-    type_data, seq_num, data_length, checksum = extract_packet_info(packet)
-    
-    return "type_data= {}; seqNum = {}; data_length = {}; checksum = {}".format(
-        type_data, seq_num, data_length, hex(checksum)[2:]
-    )
-    
+
+
 # the purpose of the receive_thread is to receive ACKs
 # TODO: timer
 def receive_thread(r_socket):
@@ -148,7 +152,12 @@ def receive_thread(r_socket):
 		time.sleep(0.1)
 
 
-def send_packet(sender_socket, packet, receiver_address):
+def send_packet(packet):
+	global sender_log
+	type_data, seq_num, data_length, checksum = extract_packet_info(packet)
+	sender_log.write("Packet sent; type={}; seqNum={}; length={}; checksum={}",
+		  type_data, seq_num, data_length, checksum
+		  )
 	unreliable_channel.send_packet(sender_socket, packet, receiver_address)
  
 # only sends packets within the window
@@ -157,28 +166,30 @@ def send_thread(sender_socket, packets):
 	global last_ack_seq_num, exp_seq_num, window_base, window_size, acks, timer, lock
  
 	window =  window_base + window_size
-	while exp_seq_num < window:
-		with lock:
-			# update window
-			if (exp_seq_num >= window):
-				window_base = window
-			window = window_base + window_size
+	while len(acks) != len(packets):
+		while exp_seq_num < window:
+			with lock:
+				# update window
+				if (exp_seq_num >= window):
+					window_base = window
+				window = window_base + window_size
 
-		with lock:
-			packet = packets(exp_seq_num)
-			if timer.timeout() or not timer.is_running():
-				send_packet(sender_socket, packet, receiver_address)
-			# are there packets to send
-			elif exp_seq_num <= len(packets):
-				send_packet(sender_socket, packet, receiver_address)
-				# Increment sequence number
-				exp_seq_num += 1
+			with lock:
+				packet = packets(exp_seq_num)
+				if timer.timeout() or not timer.is_running():
+					send_packet(sender_socket, packet, receiver_address)
+				# are there packets to send
+				elif exp_seq_num <= len(packets):
+					send_packet(sender_socket, packet, receiver_address)
+					# Increment sequence number
+					exp_seq_num += 1
 		# allow other thread to run
-		time.sleep(0.1)
+			time.sleep(0.1)
+		update_window(window)
     
 
 def main():
-	global packets, reciever_ip, reciever_port, receiver_address, window_size, input, sender_log
+	global sender_socket, sender_address, packets, receiver_address, window_size, input, sender_log
     # read the command line arguments
 	reciever_ip = sys.argv[1]
 	reciever_port = int (sys.argv[2])
@@ -200,7 +211,7 @@ def main():
 	segment = input.read(MAX_DATA_SIZE)
 	while input:
 		# append to list of packets
-		packets.append(create_packet(segment, seq_num))
+		packets.append(create_data_packet(segment, seq_num))
 		# update
 		segment = input.read(MAX_DATA_SIZE)
 		seq_num +=1
