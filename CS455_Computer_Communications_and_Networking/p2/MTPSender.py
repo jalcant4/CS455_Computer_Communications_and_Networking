@@ -12,7 +12,7 @@ import sys
 from Timer import Timer
 import time
 
-#constant
+# constant
 UDP_HEADER_SIZE = 28
 MTP_HEADER_SIZE = 16
 MAX_DATA_SIZE = 1500 - UDP_HEADER_SIZE - MTP_HEADER_SIZE
@@ -32,12 +32,12 @@ window_size = 0
 max_window_size = 0
 
 dup_ack_count = 0
-exp_seq_num = 0
-last_seq_num = 0
+exp_seq_num = 0				# the seqNum we are expecting in our ACK
+last_ack_seq_num = 0			# the seqNum of the last_ackious ACK
 
 
-packets = []
-acks = []
+packets = []				# contains packet by seqNum
+acks = []					# TODO: contains ack by seqNum
 
 timer = None
 
@@ -65,6 +65,9 @@ def calc_checksum(type_data, seq_num, data_length, data):
 def getCurrWindowSize(totalpackets, window_size):
     return min(window_size, totalpackets - window_base + 1)
 
+# MTP DATA packet looks as shown below. Note that your MTP header + data is encapsulated in the UDP
+# header since the sender and receiver connect over a UDP socket. Of course, the UDP header is already
+# added by the socket and is something that you don’t have to implement.
 def create_packet(data, seq_num):
 	# create data packet
 	# crc32 available through zlib library
@@ -84,41 +87,6 @@ def extract_packet_info(packet):
 	checksum = bytes_to_int(mtp_header[12:16])
 
 	return type_data, seq_num, data_length, checksum
-
-def receive_thread(s_socket):
-	while True:
-		# receive ack, but using our unreliable channel
-		# packet_from_receiver, receiver_addr = unreliable_channel.recv_packet(socket)
-		# call extract_packet_info
-		# check for corruption, take steps accordingly
-		# update window size, timer, triple dup acks
-		packet_from_server, server_addr = unreliable_channel.recv_packet(s_socket)
-		type_data, next_seq_num, data_length, checksum = extract_packet_info(packet_from_server)
-
-		if next_seq_num == 0:
-			break
-		validate_checksum = bytes_to_int(calc_checksum(type_data, next_seq_num, data_length))
-		if checksum != validate_checksum:
-			sender_log.write(f"Packet received; type={type_data}; seqNum={next_seq_num}; length={data_length}; checksum_in_packet={checksum}; checksum_calculated={validate_checksum}; status=CORRUPT;")
-		elif checksum == validate_checksum:
-			if window_base == next_seq_num:
-				dup_ack_count += 1
-				if dup_ack_count == 3:
-					mutex.acquire()
-					next_seq_num = window_base
-					dup_ack_count = 0
-					sender_log.write("Triple Dup ACK received for packet seqNum= {window_base}")
-					mutex.release()
-			if window_base < next_seq_num:
-				mutex.acquire()
-				next_seq_num -= 1
-				sender_log.write("Acks received from the receiver for the seqeuence number {next_seq_num}.\n Udaating window from {window_base} to {nex_seq_num}\n")
-				window_base = next_seq_num
-				#TODO timeout
-				if packet_timeout is not None:
-					packet_timeout.stop()
-				mutex.release()
-     
        	
 def parse_header(packet):
     type_data, seq_num, data_length, checksum = extract_packet_info(packet)
@@ -127,70 +95,87 @@ def parse_header(packet):
         type_data, seq_num, data_length, hex(checksum)[2:]
     )
     
-
+# the purpose of the receive_thread is to receive ACKs
+# TODO: timer
 def receive_thread(r_socket):
-	global exp_seq_num, last_seq_num, dup_ack_count, lock
-	while exp_seq_num < len(packets):
+	global receiver_address, exp_seq_num, last_ack_seq_num, dup_ack_count, lock, timer
+	while len(acks) != len(packets):
 		# receive ack, but using our unreliable channel
 		# packet_from_receiver, receiver_addr = unreliable_channel.recv_packet(socket)
 		# call extract_packet_info
-		packet_from_server, server_addr = unreliable_channel.recv_packet(r_socket)
-		type_data, seq_num, data_length, receiver_checksum = extract_packet_info(packet_from_server)
+		packet_from_server, receiver_address = unreliable_channel.recv_packet(r_socket)
+		ack_type_data, ack_seq_num, ack_data_length, ack_checksum = extract_packet_info(packet_from_server)
 		
-		if type_data == b'ACK':
+		# timer is initialized and started
+		if timer is None or not timer.is_running:
+			timer = Timer(PACKET_TIMEOUT)
+			timer.start()
+
+		if ack_type_data == b'ACK':
+			# get packet that is ACKNOWLEDGED
+			local_packet = packets[ack_seq_num]
+			# parse checksum from local_packet
+			local_data, local_seq_num, local_data_length, local_checksum = extract_packet_info(local_packet)
 			# check for corruption, take steps accordingly
-			sender_checksum = packets[seq_num]
-			if sender_checksum != receiver_checksum:
+			if local_checksum != ack_checksum:
 				# ignore if ACK is corrupted
 				continue
 		
-			# update exp_seq_num and last_seq_num
-			elif sender_checksum == receiver_checksum:
+			# update exp_seq_num and last_ack_seq_num
+			elif local_checksum == ack_checksum:
 				with lock:
-					if seq_num == exp_seq_num:
-						last_seq_num = exp_seq_num
+					# if we get the expected sequence number, update
+					#	exp_seq_num is incremented
+					#	last_ack_seq_num is a comparison value in case of dup ACKs
+					#	reset the dup ack_count
+					if ack_seq_num == exp_seq_num:
+						acks.append(packet_from_server)
+						last_ack_seq_num = exp_seq_num
 						exp_seq_num += 1
 						dup_ack_count = 0
-					#update triple dup acks
-					elif seq_num <= last_seq_num:
+					# update triple dup acks
+					elif ack_seq_num <= last_ack_seq_num:
 						dup_ack_count += 1
 
 						if dup_ack_count == 3:
-							exp_seq_num = seq_num
+							exp_seq_num = ack_seq_num
 							dup_ack_count = 0
+       # timeout stops the timer essentially restarting the timer in the receive thread
+		if timer.timeout():
+			exp_seq_num = exp_seq_num
+			timer.stop()
+		# allow other thread to run
+		time.sleep(0.1)
 
 
 def send_packet(sender_socket, packet, receiver_address):
 	unreliable_channel.send_packet(sender_socket, packet, receiver_address)
-
+ 
+# only sends packets within the window
+# assumption: must be ran after receive_thread
 def send_thread(sender_socket, packets):
-	global last_seq_num, exp_seq_num, window_base, window_size, acks, timer, lock
-
-	timer = Timer(PACKET_TIMEOUT,)
-	
-	while window_base < len(packets):
+	global last_ack_seq_num, exp_seq_num, window_base, window_size, acks, timer, lock
+ 
+	window =  window_base + window_size
+	while exp_seq_num < window:
 		with lock:
 			# update window
-			window = window_base + window_size
 			if (exp_seq_num >= window):
 				window_base = window
+			window = window_base + window_size
 
-		with lock:	
-			# are there packets to send
-			if exp_seq_num <= len(packets):
-				packet = packets(exp_seq_num)
+		with lock:
+			packet = packets(exp_seq_num)
+			if timer.timeout() or not timer.is_running():
 				send_packet(sender_socket, packet, receiver_address)
-
-				timer.start()
+			# are there packets to send
+			elif exp_seq_num <= len(packets):
+				send_packet(sender_socket, packet, receiver_address)
 				# Increment sequence number
 				exp_seq_num += 1
-
-		while timer.isRunning() and not timer.timeout():
-			time.sleep(0.1)
-		
-		with lock:
-			send_packet(sender_socket, packet, receiver_address)
-			timer.start()
+		# allow other thread to run
+		time.sleep(0.1)
+    
 
 def main():
 	global packets, reciever_ip, reciever_port, receiver_address, window_size, input, sender_log
@@ -200,17 +185,17 @@ def main():
 	receiver_address = (reciever_ip, reciever_port)
 	window_size = int (sys.argv[3])
 	# open log file and start logging
-	#input = open (sys.argv[4], "rw+")
-	#sender_log = open (sys.argv[5], "rw+")
 	input = open (sys.argv[4], "w+")
 	sender_log = open (sys.argv[5], "r")
 
+
 	# open the UDP socket
 	sender_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-	receiver_address = (sender_ip, sender_port)
-	#sender_socket.bind(receiver_address)
+	sender_address = (sender_ip, sender_port)
+	sender_socket.bind(sender_address)
 	
-	# take the input file and split it into packets
+ 
+	# creates packets
 	seq_num = 0
 	segment = input.read(MAX_DATA_SIZE)
 	while input:
@@ -220,48 +205,17 @@ def main():
 		segment = input.read(MAX_DATA_SIZE)
 		seq_num +=1
 
+
 	# start receive thread (modify as needed) which receives ACKs
 	recv_thread = threading.Thread(target=receive_thread, args=(sender_socket,))
 	recv_thread.start()
 
-	# while there are packets to send:
-		# send packets to receiver using our unreliable_channel.send_packet()
-		# update the window size, timer, etc.
-	while window_base < final_packet:
-		#a = window_base > max_window_size
-		#b = next_seq_number < final_packet
-		
-		mutex.acquire()
-		#while a and b:
-		while window_base > max_window_size and next_seq_number < final_packet:
-			#sender_log_file.write("Sending packet with seqNum: {} \n". format(next_seq_number))
-			unreliable_channel.send_packet(sender_socket, packets[next_seq_number], receiver_address)
-
-			#log the sender packate info into
-			sender_log.write("Packet sent; {}\n". format(parse_header(packets[next_seq_number])))
-
-			next_seq_number += 1
-		packet_timeout.start()
-		mutex.release()
-		
-  		# Yield to other threads
-		while packet_timeout.is_running() and packet_timeout.timeout() is False:
-			time.sleep(0)
-		
-		mutex.acquire()
-		# did not successfully received ack, update window_base
-		if packet_timeout.timeout():  
-			sender_log.write("Timeout  for packet seqNum= {next_seq_number}\n")
-			next_seq_number = window_base
-		mutex.release()
-  
-	sender_log.write("Final packet sent : {next_seq_number}\n")
-	unreliable_channel.send_packet(sender_socket, create_packet('', next_seq_number), receiver_address)
+	
+     # while there are packets to send:
 	# send packets to receiver using our unreliable_channel.send_packet()
 	# update the window size, timer, etc.
-	send_thread = threading.Thread(target=send_thread, args=(sender_socket,packets))
+	send_thread = threading.Thread(target=send_thread, args=(sender_socket, packets))
 	send_thread.start()
-     
 # your main thread can act as the send thread which sends data packets  
 main()
 

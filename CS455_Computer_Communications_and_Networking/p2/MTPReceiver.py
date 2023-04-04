@@ -57,6 +57,7 @@ def calc_checksum(type_data, seq_num, data_length, data):
     checksum = zlib.crc32(type_data + seq_num + data_length + data)
     return int_to_bytes(checksum)
 
+# MTP ACK packet will have the same fields in its header, without any data.
 # assumption: must call extract_packet, otherwise behavior is undefined
 def create_ack_packet(seq_num):
     # create ack packet
@@ -155,7 +156,8 @@ def main():
     print("Establishing Connection........")
     
     receiver_socket.bind(receiver_ip,receiver_port)
-        #start the timer
+    
+    #start the timer
     if timer is None:
         timer = Timer(ack_timeout, send_ack, args=(expected_seq_number, sender_addr))
         timer.start()
