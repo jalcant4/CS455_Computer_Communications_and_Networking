@@ -12,9 +12,9 @@ import socket
 import sys
 
 # constants
-UDP_HEADER_SIZE = 8
+UDP_HEADER_SIZE = 28
 MTP_HEADER_SIZE = 16
-MAX_PACKET_SIZE = 1500
+MAX_DATA_SIZE = 1500 - UDP_HEADER_SIZE - MTP_HEADER_SIZE
 
 ## define and initialize
 # rec_window_size, rec_window_base, seq_number, dup_ack_count, etc.
@@ -29,7 +29,7 @@ received_data = []
 
 data_type = None
 seq_num = 0
-data_length = MAX_PACKET_SIZE - UDP_HEADER_SIZE - MTP_HEADER_SIZE
+data_length = MAX_DATA_SIZE
 checksum = 0
 data = None
 
@@ -57,12 +57,11 @@ def calc_checksum(type_data, seq_num, data_length, data):
     checksum = zlib.crc32(type_data + seq_num + data_length + data)
     return int_to_bytes(checksum)
 
+# assumption: must call extract_packet, otherwise behavior is undefined
 def create_ack_packet(seq_num):
     # create ack packet
     # crc32 available through zlib library
     packet_type = b'ACK'
-	
-    type_data = b'DATA'
     seq_num = int_to_bytes(seq_num)
     data_length = int_to_bytes(len(data))
     checksum = calc_checksum(type_data, seq_num, data_length, data)
@@ -79,7 +78,7 @@ def extract_packet(packet):
     seq_num = bytes_to_int(mtp_header[4:8])
     data_length = bytes_to_int(mtp_header[8:12])
     checksum = bytes_to_int(mtp_header[12:16])
-    data = packet[UDP_HEADER_SIZE + MTP_HEADER_SIZE:].decode('utf-8')
+    data = packet[MTP_HEADER_SIZE:].decode('utf-8')
 
 # assumption: must call extract_packet, otherwise behavior is undefined
 def validate_packet():
