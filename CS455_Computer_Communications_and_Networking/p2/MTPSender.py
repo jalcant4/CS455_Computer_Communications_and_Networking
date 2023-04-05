@@ -17,7 +17,7 @@ import zlib
 UDP_HEADER_SIZE = 28
 MTP_HEADER_SIZE = 16
 MAX_DATA_SIZE = 1500 - UDP_HEADER_SIZE - MTP_HEADER_SIZE
-PACKET_TIMEOUT = 0.5
+ACK_TIMEOUT = 0.5
 MAX_DUP_ACKS = 3
 
 SENDER_IP = "127.0.0.2"
@@ -97,13 +97,19 @@ def create_data_packet(data, seq_num):
 
 
 def extract_packet_info(packet):
-	mtp_header = packet[0:MTP_HEADER_SIZE]
-	data_type = bytes_to_int(mtp_header[0:4])
-	seq_num = bytes_to_int(mtp_header[4:8])
-	data_length = bytes_to_int(mtp_header[8:12])
-	checksum = bytes_to_int(mtp_header[12:16])
-
-	return data_type, seq_num, data_length, checksum
+    # Extract the MTP header from the packet
+    mtp_header = packet[:MTP_HEADER_SIZE]
+    
+    # Unpack the values from the MTP header using the struct format
+    data_type, seq_num, data_length, checksum = struct.unpack('!4s4s4s4s', mtp_header)
+    
+    # Convert the bytes objects to integer values
+    data_type = data_type.decode('utf-8')
+    seq_num = bytes_to_int(seq_num)
+    data_length = bytes_to_int(data_length)
+    checksum = bytes_to_int(checksum)
+    
+    return data_type, seq_num, data_length, checksum
 
 
 # the purpose of the receive_thread is to receive ACKs
@@ -122,13 +128,26 @@ def receive_thread(r_socket):
 			local_packet = packets[ack_seq_num]
 			# parse checksum from local_packet
 			local_data, local_seq_num, local_data_length, local_checksum = extract_packet_info(local_packet)
+
+			if ack_seq_num != exp_seq_num:
+				sender_log.write("Packet received; type={}; seqNum{}; length={}; checksum_in_packet={}; checksum_calculated={}; status=OUT_OF_ORDER;".format(
+					ack_data_type, ack_seq_num, ack_data_length, ack_checksum, local_checksum
+				))
+				handle_out_of_order()
+
 			# check for corruption, take steps accordingly
-			if local_checksum != ack_checksum:
+			elif local_checksum != ack_checksum:
+				sender_log.write("Packet received; type={}; seqNum{}; length={}; checksum_in_packet={}; checksum_calculated={}; status=CORRUPT;".format(
+					ack_data_type, ack_seq_num, ack_data_length, ack_checksum, local_checksum
+				))
 				# ignore if ACK is corrupted
-				continue
+
 		
 			# update exp_seq_num and last_ack_seq_num
 			elif local_checksum == ack_checksum:
+				sender_log.write("Packet received; type={}; seqNum{}; length={}; checksum_in_packet={}; checksum_calculated={}; status=NOT_CORRUPT;".format(
+					ack_data_type, ack_seq_num, ack_data_length, ack_checksum, local_checksum
+				))
 				with lock:
 					# if we get the expected sequence number, update
 					#	exp_seq_num is incremented
@@ -146,8 +165,7 @@ def receive_thread(r_socket):
 						dup_ack_count += 1
 
 						if dup_ack_count == 3:
-							exp_seq_num = ack_seq_num
-							dup_ack_count = 0
+							handle_dup_acks(ack_seq_num + 1)
 					
 		time.sleep(0.1)
 
@@ -158,7 +176,7 @@ def send_packet(sender_socket, packet, receiver_address):
 	data_type, seq_num, data_length, checksum = extract_packet_info(packet)
 
 	sender_log.write("Packet sent; type={}; seqNum={}; length={}; checksum={}\n".format(
-		data_type, seq_num, data_length, checksum
+		str(data_type), seq_num, data_length, checksum
 	))
 	unreliable_channel.send_packet(sender_socket, packet, receiver_address)
 
@@ -166,43 +184,100 @@ def send_packet(sender_socket, packet, receiver_address):
 # only sends packets within the window
 # assumption: must be ran after receive_thread
 def send_thread(sender_socket, packets):
-	global sender_index, window, window_base, window_size, acks, timer, lock
+	global window, window_base, acks, timer, lock
 	
 	while len(acks) != len(packets):
-		# set window
-		with lock:
-			window_base = window
-			window = window_base + window_size
+		#set window
+		update_window(window)
 
-		# this loop send_packet
-		while sender_index < window:
-			# timer for the oldest unacked packet
-			if timer is None or not timer.is_running():
-				timer = Timer(PACKET_TIMEOUT)
+		# send packets within window
+		for i in range(window - window_base):
+			packet = packets[window_base + i]
+			send_packet(sender_socket, packet, receiver_address)
 
-			with lock:
-				# are there packets to send within the window
-				if sender_index != window:
-					packet = packets[sender_index]
-					send_packet(sender_socket, packet, receiver_address)
+		#start timer
+		if timer is None or not timer.is_running():
+			timer = Timer(ACK_TIMEOUT, handle_timeout)
+			timer.start()
 
-					if not timer.is_running():
-						timer.start()
-					sender_index += 1
+		while last_ack_seq_num != len(acks):
+			# Wait for acks before sending next window
+			time.sleep(1)
 
-				# timeout
-				elif not timer.is_running or timer.timeout():
-					sender_index = last_ack_seq_num + 1
-					packet = packets[sender_index]
-					send_packet(sender_socket, packet, receiver_address)
+		if (len(acks) == len(packets)):
+			break
+	
+	sender_socket.close()
 
-					timer.start()
-					sender_index += 1
 
-			if sender_index != window:
-				# allow other thread to run until we receive ACKs
-				time.sleep(0.1)
-    
+# locks and protects the window
+def update_window(start):
+	global window, window_base
+
+	with lock:
+			window_base = start
+			if window + window_size < len(packets):
+				window += window_size
+			else:
+				window = len(packets) - window
+
+
+def handle_timeout():
+	global timer, dup_ack_count, exp_seq_num, lock
+
+	update_window(last_ack_seq_num + 1)
+
+	with lock:	
+		# send packets within window range
+		for i in range(window_size):
+			packet = packets[window_base + i]
+			send_packet(sender_socket, packet, receiver_address)
+
+		timer = Timer(ACK_TIMEOUT, handle_timeout)
+		timer.start()
+        
+        # Reset duplicate ack count and expected sequence number
+		dup_ack_count = 0
+		exp_seq_num = last_ack_seq_num + 1
+
+
+def handle_out_of_order():
+	global timer, dup_ack_count, exp_seq_num, lock
+
+	update_window(last_ack_seq_num + 1)
+
+	with lock:
+		# send packets within window range
+		for i in range(window_size):
+			packet = packets[window_base + i]
+			send_packet(sender_socket, packet, receiver_address)
+
+		timer = Timer(ACK_TIMEOUT, handle_timeout)
+		timer.start()
+        
+        # Reset duplicate ack count and expected sequence number
+		dup_ack_count = 0
+		exp_seq_num = last_ack_seq_num + 1
+
+
+def handle_dup_acks(s_n):
+	global timer, dup_ack_count, exp_seq_num, lock
+
+	update_window(s_n)
+
+	with lock:
+		# send packets within window range
+		for i in range(window_size):
+			packet = packets[window_base + i]
+			send_packet(sender_socket, packet, receiver_address)
+
+		timer = Timer(ACK_TIMEOUT, handle_timeout)
+		timer.start()
+        
+        # Reset duplicate ack count and expected sequence number
+		dup_ack_count = 0
+		exp_seq_num = last_ack_seq_num + 1
+
 
 def main():
 	global sender_socket, sender_address, packets, receiver_address, window_size, input, sender_log

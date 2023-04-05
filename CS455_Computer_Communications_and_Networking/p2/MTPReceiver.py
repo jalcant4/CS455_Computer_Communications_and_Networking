@@ -31,7 +31,6 @@ data_type = None
 seq_num = 0
 data_length = MAX_DATA_SIZE
 checksum = 0
-calculated_checksum = 0
 data = None
 
 received_data = []
@@ -49,8 +48,7 @@ def bytes_to_int(b):
 
 # assumption: values except data are bytes
 def calc_checksum(data_type, seq_num, data_length, data):
-    global calculated_checksum
-    calculated_checksum = 0
+    checksum = 0
     
     # Convert bytes to bytearray or bytes-like object
     data_type_bytes = bytearray(data_type)
@@ -62,9 +60,10 @@ def calc_checksum(data_type, seq_num, data_length, data):
     data_in_bytes = data.encode()
     for i in range(0, len(data_in_bytes), CHUNK_SIZE):
         chunk = data_in_bytes[i:i+CHUNK_SIZE]
-        calculated_checksum = zlib.crc32(data_type_bytes + seq_num_bytes + data_length_bytes + chunk, calculated_checksum)
+        checksum = zlib.crc32(data_type_bytes + seq_num_bytes + data_length_bytes + chunk, checksum)
 
-    calculated_checksum = calculated_checksum.to_bytes(4, byteorder='big')
+    return checksum.to_bytes(4, byteorder='big')
+
 
 
 # MTP ACK packet will have the same fields in its header, without any data.
@@ -73,6 +72,8 @@ def create_ack_packet(seq_num):
     # create ack packet
     # crc32 available through zlib library
     packet_type = bytes(b'ACK')
+    packet_format = '!4s4s4s4s'
+    
     packet_format = '!4s4s4s4s'
     packet = struct.pack(packet_format, packet_type, seq_num, data_length, checksum)
     return packet
@@ -85,17 +86,18 @@ def extract_data_packet(packet):
     mtp_header = packet[:MTP_HEADER_SIZE]
     
     # Unpack the values from the MTP header using the struct format
-    data_type, seq_num, data_length, checksum = struct.unpack('!4B4B4B4B', mtp_header)
+    data_type, seq_num, data_length, checksum = struct.unpack('!4s4s4s4s', mtp_header)
     
     # Extract the data from the packet and decode it as UTF-8
     data = packet[MTP_HEADER_SIZE:].decode('utf-8')
 
 
 # assumption: must call extract_data_packet, otherwise behavior is undefined
-def validate_packet():
-    calc_checksum(data_type, seq_num, data_length, data)
+def validate_packet(packet):
+    extract_data_packet(packet)
+    calculated_checksum = calc_checksum(data_type, seq_num, data_length, data)
 
-    if (seq_num != expected_seq_number):
+    if (bytes_to_int(seq_num) != expected_seq_number):
         print("Packet_received: type= {}; seqNum = {}; length = {}; checksum_in_packet = {}; calculated_checksum = {}; status = OUT OF ORDER PACKET".format(
         data_type, seq_num, data_length, checksum, calculated_checksum), file=receiver_log) 
     elif (checksum != calculated_checksum):
@@ -105,7 +107,7 @@ def validate_packet():
         print("Packet_received: type= {}; seqNum = {}; length = {}; checksum_in_packet = {}; calculated_checksum = {}; status = NOT CORRUPT".format(
         data_type, seq_num, data_length, checksum, calculated_checksum), file=receiver_log)  
     
-    return checksum == calculated_checksum and seq_num == expected_seq_number
+    return checksum == calculated_checksum and bytes_to_int(seq_num) == expected_seq_number
 
 def send_ack(seq_num, sender_addr):
     # TODO print
@@ -120,9 +122,8 @@ def receive_thread(receiver_socket):
     while True:
         # send ack packets but using unreliable channel
         packet, sender_addr = unreliable_channel.recv_packet(receiver_socket)
-        extract_data_packet(packet)
-        
-         #start the timer
+
+        #start the timer
         if timer is None:
             timer = Timer(TIMEOUT)
             timer.start()
@@ -131,7 +132,7 @@ def receive_thread(receiver_socket):
         while timer.is_running() and not timer.timeout():
             with lock:
                 # Arrival of an in-order packet with expected sequence #
-                if validate_packet():
+                if validate_packet(packet):
                     received_data.append(data)
                     output.write(data)
 
