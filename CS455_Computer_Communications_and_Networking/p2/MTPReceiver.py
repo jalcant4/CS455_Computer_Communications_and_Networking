@@ -2,6 +2,7 @@
 
 
 ## import (add more as you need)
+import struct
 import threading
 import unreliable_channel
 import numpy as np
@@ -15,6 +16,7 @@ import sys
 UDP_HEADER_SIZE = 28
 MTP_HEADER_SIZE = 16
 MAX_DATA_SIZE = 1500 - UDP_HEADER_SIZE - MTP_HEADER_SIZE
+TIMEOUT = 0.5
 
 ## define and initialize
 # rec_window_size, rec_window_base, seq_number, dup_ack_count, etc.
@@ -25,104 +27,113 @@ receiver_log = None
 receiver_socket = None
 sender_addr = None
 
-received_data = []
-
 data_type = None
 seq_num = 0
 data_length = MAX_DATA_SIZE
 checksum = 0
+calculated_checksum = 0
 data = None
 
+received_data = []
 expected_seq_number = 0
 
 timer = None
-ack_timeout = 1
 
 lock = threading.Lock()
 
 def int_to_bytes(i):
-	return np.int64(i).tobytes()
+    return i.to_bytes(4, byteorder='big')
 
 def bytes_to_int(b):
-	return np.frombuffer(b, dtype=np.uint32)[0]
+    return int.from_bytes(b, byteorder='big')
 
-def calc_checksum(type_data, seq_num, data_length, data):
-    checksum = 0
+# assumption: values except data are bytes
+def calc_checksum(data_type, seq_num, data_length, data):
+    global calculated_checksum
+    calculated_checksum = 0
+    
+    # Convert bytes to bytearray or bytes-like object
+    data_type_bytes = bytearray(data_type)
+    seq_num_bytes = bytearray(seq_num)
+    data_length_bytes = bytearray(data_length)
+    
+    # Calculate checksum incrementally in chunks
+    CHUNK_SIZE = 1024  # adjust chunk size as needed
+    data_in_bytes = data.encode()
+    for i in range(0, len(data_in_bytes), CHUNK_SIZE):
+        chunk = data_in_bytes[i:i+CHUNK_SIZE]
+        calculated_checksum = zlib.crc32(data_type_bytes + seq_num_bytes + data_length_bytes + chunk, calculated_checksum)
 
-    type_data = int_to_bytes(type_data)
-    seq_num = int_to_bytes(seq_num)
-    data_length = int_to_bytes(data_length)
-    data = int_to_bytes(data)
+    calculated_checksum = calculated_checksum.to_bytes(4, byteorder='big')
 
-    checksum = zlib.crc32(type_data + seq_num + data_length + data)
-    return int_to_bytes(checksum)
 
 # MTP ACK packet will have the same fields in its header, without any data.
-# assumption: must call extract_packet, otherwise behavior is undefined
+# assumption: must call extract_data_packet, otherwise behavior is undefined
 def create_ack_packet(seq_num):
     # create ack packet
     # crc32 available through zlib library
-    packet_type = b'ACK'
-    seq_num = int_to_bytes(seq_num)
-    data_length = int_to_bytes(len(data) + MTP_HEADER_SIZE)
-    checksum = calc_checksum(type_data, seq_num, data_length, data)
-    
-    ack_packet = packet_type + seq_num + data_length + checksum
-    return ack_packet
+    packet_type = bytes(b'ACK')
+    packet_format = '!4s4s4s4s'
+    packet = struct.pack(packet_format, packet_type, seq_num, data_length, checksum)
+    return packet
 
-def extract_packet(packet):
-    global type_data, seq_num, data_length, checksum, data
+
+def extract_data_packet(packet):
+    global data_type, seq_num, data_length, checksum, data
     
-    # extract the data after receiving
-    mtp_header = packet[UDP_HEADER_SIZE:UDP_HEADER_SIZE + MTP_HEADER_SIZE]
-    type_data = bytes_to_int(mtp_header[0:4])
-    seq_num = bytes_to_int(mtp_header[4:8])
-    data_length = bytes_to_int(mtp_header[8:12])
-    checksum = bytes_to_int(mtp_header[12:16])
+    # Extract the MTP header from the packet
+    mtp_header = packet[:MTP_HEADER_SIZE]
+    
+    # Unpack the values from the MTP header using the struct format
+    data_type, seq_num, data_length, checksum = struct.unpack('!4B4B4B4B', mtp_header)
+    
+    # Extract the data from the packet and decode it as UTF-8
     data = packet[MTP_HEADER_SIZE:].decode('utf-8')
 
-# assumption: must call extract_packet, otherwise behavior is undefined
+
+# assumption: must call extract_data_packet, otherwise behavior is undefined
 def validate_packet():
-    calculated_checksum = calc_checksum(type_data, seq_num, data_length, data)
+    calc_checksum(data_type, seq_num, data_length, data)
 
     if (seq_num != expected_seq_number):
         print("Packet_received: type= {}; seqNum = {}; length = {}; checksum_in_packet = {}; calculated_checksum = {}; status = OUT OF ORDER PACKET".format(
-        type_data, seq_num, data_length, checksum, calculated_checksum), file=receiver_log) 
+        data_type, seq_num, data_length, checksum, calculated_checksum), file=receiver_log) 
     elif (checksum != calculated_checksum):
         print("Packet_received: type= {}; seqNum = {}; length = {}; checksum_in_packet = {}; calculated_checksum = {}; status = CORRUPT".format(
-        type_data, seq_num, data_length, checksum, calculated_checksum), file=receiver_log)
+        data_type, seq_num, data_length, checksum, calculated_checksum), file=receiver_log)
     else:
         print("Packet_received: type= {}; seqNum = {}; length = {}; checksum_in_packet = {}; calculated_checksum = {}; status = NOT CORRUPT".format(
-        type_data, seq_num, data_length, checksum, calculated_checksum), file=receiver_log)  
+        data_type, seq_num, data_length, checksum, calculated_checksum), file=receiver_log)  
     
     return checksum == calculated_checksum and seq_num == expected_seq_number
 
 def send_ack(seq_num, sender_addr):
+    # TODO print
     # create ack packet with seq_num and send to sender
     ack_packet = create_ack_packet(seq_num)
-    receiver_socket.sendto(ack_packet, sender_addr)
+    unreliable_channel.send_packet(receiver_socket, ack_packet, sender_addr)
 
 # receives packets from the sender
 def receive_thread(receiver_socket):
-    global received_data, expected_seq_number, timer,sender_addr
+    global received_data, expected_seq_number, timer, sender_addr
 
     while True:
         # send ack packets but using unreliable channel
         packet, sender_addr = unreliable_channel.recv_packet(receiver_socket)
-        extract_packet(packet)
+        extract_data_packet(packet)
         
          #start the timer
         if timer is None:
-            timer = Timer(ack_timeout, send_ack, args=(expected_seq_number, sender_addr))
+            timer = Timer(TIMEOUT)
             timer.start()
         
-        #checks for next packet
-        while not timer.timeout():
+        # checks for next packet
+        while timer.is_running() and not timer.timeout():
             with lock:
                 # Arrival of an in-order packet with expected sequence #
                 if validate_packet():
                     received_data.append(data)
-                    print(data, f=output)
+                    output.write(data)
 
                     expected_seq_number += 1
                     send_ack(seq_num, sender_addr) 
@@ -134,6 +145,11 @@ def receive_thread(receiver_socket):
                         send_ack (expected_seq_number - 1, sender_addr)
                     else: send_ack (expected_seq_number, sender_addr)
             time.sleep(0.1)
+        
+        # timed out, resend last ack
+        if timer.timeout():
+            send_ack (expected_seq_number - 1, sender_addr)
+        
         timer = None
         
 def main():

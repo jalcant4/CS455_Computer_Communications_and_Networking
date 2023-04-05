@@ -19,7 +19,8 @@ MTP_HEADER_SIZE = 16
 MAX_DATA_SIZE = 1500 - UDP_HEADER_SIZE - MTP_HEADER_SIZE
 PACKET_TIMEOUT = 0.5
 MAX_DUP_ACKS = 3
-SENDER_IP = "127.0.0.1"
+
+SENDER_IP = "127.0.0.2"
 SENDER_PORT = 8888
 
 # define and initialize
@@ -38,20 +39,19 @@ window = 0
 window_base = 0
 window_size = 0
 
-send_index = 0				# sender index
+sender_index = 0			# sender index
 
 dup_ack_count = 0
 exp_seq_num = 0				# the seqNum we are expecting in our ACK
 last_ack_seq_num = 0		# the seqNum of the last_ackious ACK
 
+timer = None
 
 packets = []				# contains packet by seqNum
 acks = []					# contains ack by seqNum
-ack_timers = {}				# contains 
 
 ## we will need a lock to protect against two concurrent threads
 lock = threading.Lock()
-mutex = threading.Lock()
 
 
 def int_to_bytes(i):
@@ -60,19 +60,21 @@ def int_to_bytes(i):
 def bytes_to_int(b):
     return int.from_bytes(b, byteorder='big')
 
-def calc_checksum(type_data, seq_num, data_length, data):
+# assumption: values except data are bytes
+def calc_checksum(data_type, seq_num, data_length, data):
     checksum = 0
-
-    type_data = int_to_bytes(type_data)
-    seq_num = int_to_bytes(seq_num)
-    data_length = int_to_bytes(data_length)
     
-	# Calculate checksum incrementally in chunks
+    # Convert bytes to bytearray or bytes-like object
+    data_type_bytes = bytearray(data_type)
+    seq_num_bytes = bytearray(seq_num)
+    data_length_bytes = bytearray(data_length)
+    
+    # Calculate checksum incrementally in chunks
     CHUNK_SIZE = 1024  # adjust chunk size as needed
-    data_bytes = str(data).encode()
-    for i in range(0, len(data_bytes), CHUNK_SIZE):
-        chunk = data_bytes[i:i+CHUNK_SIZE]
-        checksum = zlib.crc32(type_data + seq_num + data_length + chunk, checksum)
+    data_in_bytes = data.encode()
+    for i in range(0, len(data_in_bytes), CHUNK_SIZE):
+        chunk = data_in_bytes[i:i+CHUNK_SIZE]
+        checksum = zlib.crc32(data_type_bytes + seq_num_bytes + data_length_bytes + chunk, checksum)
 
     return checksum.to_bytes(4, byteorder='big')
 
@@ -83,25 +85,25 @@ def calc_checksum(type_data, seq_num, data_length, data):
 def create_data_packet(data, seq_num):
     # create data packet
     # crc32 available through zlib library
-    type_data = b'DATA'
+    data_type = b'DATA'
     seq_num = int_to_bytes(seq_num)
     data_length = int_to_bytes(len(data) + MTP_HEADER_SIZE)
-    checksum = calc_checksum(bytes_to_int(type_data), bytes_to_int(seq_num), bytes_to_int(data_length), data)
+    checksum = calc_checksum(data_type, seq_num, data_length, data)
     data = data.encode('utf-8')
 
-    packet_format = '!4s4s4s4s' + str(len(data)) + 's'
-    packet = struct.pack(packet_format, type_data, seq_num, data_length, checksum, data)
+    packet_format = "!4s4s4s4s{}s".format(len(data))
+    packet = struct.pack(packet_format, data_type, seq_num, data_length, checksum, data)
     return packet
 
 
 def extract_packet_info(packet):
 	mtp_header = packet[0:MTP_HEADER_SIZE]
-	type_data = bytes_to_int(mtp_header[0:4])
+	data_type = bytes_to_int(mtp_header[0:4])
 	seq_num = bytes_to_int(mtp_header[4:8])
 	data_length = bytes_to_int(mtp_header[8:12])
 	checksum = bytes_to_int(mtp_header[12:16])
 
-	return type_data, seq_num, data_length, checksum
+	return data_type, seq_num, data_length, checksum
 
 
 # the purpose of the receive_thread is to receive ACKs
@@ -113,9 +115,9 @@ def receive_thread(r_socket):
 		# packet_from_receiver, receiver_addr = unreliable_channel.recv_packet(socket)
 		# call extract_packet_info
 		packet_from_server, receiver_address = unreliable_channel.recv_packet(r_socket)
-		ack_type_data, ack_seq_num, ack_data_length, ack_checksum = extract_packet_info(packet_from_server)
+		ack_data_type, ack_seq_num, ack_data_length, ack_checksum = extract_packet_info(packet_from_server)
 
-		if ack_type_data == b'ACK':
+		if ack_data_type == b'ACK':
 			# get packet that is ACKNOWLEDGED
 			local_packet = packets[ack_seq_num]
 			# parse checksum from local_packet
@@ -135,8 +137,10 @@ def receive_thread(r_socket):
 					if ack_seq_num == exp_seq_num:
 						acks.append(packet_from_server)
 						last_ack_seq_num = exp_seq_num
+
 						exp_seq_num += 1
 						dup_ack_count = 0
+
 					# update triple dup acks
 					elif ack_seq_num <= last_ack_seq_num:
 						dup_ack_count += 1
@@ -144,14 +148,17 @@ def receive_thread(r_socket):
 						if dup_ack_count == 3:
 							exp_seq_num = ack_seq_num
 							dup_ack_count = 0
+					
 		time.sleep(0.1)
 
 
 def send_packet(sender_socket, packet, receiver_address):
 	global sender_log
-	type_data, seq_num, data_length, checksum = extract_packet_info(packet)
-	sender_log.write("Packet sent; type={}; seqNum={}; length={}; checksum={}".format(
-		type_data, seq_num, data_length, checksum
+
+	data_type, seq_num, data_length, checksum = extract_packet_info(packet)
+
+	sender_log.write("Packet sent; type={}; seqNum={}; length={}; checksum={}\n".format(
+		data_type, seq_num, data_length, checksum
 	))
 	unreliable_channel.send_packet(sender_socket, packet, receiver_address)
 
@@ -159,7 +166,7 @@ def send_packet(sender_socket, packet, receiver_address):
 # only sends packets within the window
 # assumption: must be ran after receive_thread
 def send_thread(sender_socket, packets):
-	global last_ack_seq_num, exp_seq_num, window, window_base, window_size, acks, ack_timers, timer, lock
+	global sender_index, window, window_base, window_size, acks, timer, lock
 	
 	while len(acks) != len(packets):
 		# set window
@@ -168,27 +175,31 @@ def send_thread(sender_socket, packets):
 			window = window_base + window_size
 
 		# this loop send_packet
-		while exp_seq_num < window:
-			timer = Timer(PACKET_TIMEOUT)
-			timer.start()
-			ack_timers.append(timer)
+		while sender_index < window:
+			# timer for the oldest unacked packet
+			if timer is None or not timer.is_running():
+				timer = Timer(PACKET_TIMEOUT)
 
 			with lock:
+				# are there packets to send within the window
+				if sender_index != window:
+					packet = packets[sender_index]
+					send_packet(sender_socket, packet, receiver_address)
+
+					if not timer.is_running():
+						timer.start()
+					sender_index += 1
+
 				# timeout
-				if timer.timeout() or not timer.is_running():
+				elif not timer.is_running or timer.timeout():
 					sender_index = last_ack_seq_num + 1
 					packet = packets[sender_index]
 					send_packet(sender_socket, packet, receiver_address)
-					timer.start()
-				# are there packets to send
-				elif sender_index != window:
-					packet = packets[exp_seq_num]
-					send_packet(sender_socket, packet, receiver_address)
-					# Increment sequence number
-					sender_index += 1
-					timer().start()
 
-			if last_ack_seq_num != window:
+					timer.start()
+					sender_index += 1
+
+			if sender_index != window:
 				# allow other thread to run until we receive ACKs
 				time.sleep(0.1)
     
@@ -231,6 +242,8 @@ def main():
 	# update the window size, timer, etc.
 	snd_thread = threading.Thread(target=send_thread, args=(sender_socket, packets))
 	snd_thread.start()
+
+
 # your main thread can act as the send thread which sends data packets  
 main()
 
