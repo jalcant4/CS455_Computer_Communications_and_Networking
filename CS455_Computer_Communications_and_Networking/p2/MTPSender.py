@@ -119,7 +119,7 @@ def receive_thread(r_socket):
 		packet_from_server, receiver_address = unreliable_channel.recv_packet(r_socket)
 		ack_data_type, ack_seq_num, ack_data_length, ack_checksum = extract_packet_info(packet_from_server)
 
-		if ack_data_type == b'ACK':
+		if ack_data_type.encode('utf-8') == b'_ACK':
 			# get packet that is ACKNOWLEDGED
 			local_packet = packets[ack_seq_num]
 			# parse checksum from local_packet
@@ -137,7 +137,6 @@ def receive_thread(r_socket):
 					ack_data_type, ack_seq_num, ack_data_length, ack_checksum, local_checksum
 				))
 				# ignore if ACK is corrupted
-
 		
 			# update exp_seq_num and last_ack_seq_num
 			elif local_checksum == ack_checksum:
@@ -163,7 +162,7 @@ def receive_thread(r_socket):
 						if dup_ack_count == MAX_DUP_ACKS:
 							handle_dup_acks(ack_seq_num + 1)
 					
-		time.sleep(0.1)
+		time.sleep(0.005)
 
 
 def send_packet(sender_socket, packet, receiver_address):
@@ -199,7 +198,7 @@ def send_thread(sender_socket, packets):
 		with lock:
 			while last_ack_seq_num != window:
 				# Wait for acks before sending next window
-				time.sleep(0.1)
+				time.sleep(0.005)
 
 		if (len(acks) == len(packets)):
 			break

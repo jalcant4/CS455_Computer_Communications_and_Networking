@@ -146,7 +146,7 @@ def receive_thread(receiver_socket):
                 output.write(data)
 
             # create ack packet with seq_num and send to sender
-            ack_packet = create_ack_packet(b'ACK', data_seq_num, MTP_HEADER_SIZE, ack_checksum)
+            ack_packet = create_ack_packet(b'_ACK', data_seq_num, MTP_HEADER_SIZE, ack_checksum)
             send_ack(ack_packet, sender_addr)
             timer.start()
         # Arrival of an out-of-order packet with higher-than-expected sequence 

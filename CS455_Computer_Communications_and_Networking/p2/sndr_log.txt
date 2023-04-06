@@ -12,3 +12,4 @@ Packet sent; type=DATA; seqNum=6; length=1472; checksum=8804ebf7
 Packet sent; type=DATA; seqNum=7; length=1472; checksum=e342a28a
 Packet sent; type=DATA; seqNum=8; length=1472; checksum=e8dd3c32
 Packet sent; type=DATA; seqNum=9; length=1472; checksum=40149e69
+Packet received; type=_ACK; seqNum0; length=16; checksum_in_packet=0e162119; checksum_calculated=0e162119; status=NOT_CORRUPT;
