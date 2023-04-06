@@ -61,21 +61,16 @@ def int_to_bytes(i):
 def bytes_to_int(b):
     return int.from_bytes(b, byteorder='big')
 
-# assumption: values except data are bytes
+
 def calc_checksum(data_type, seq_num, data_length, data):
     checksum = 0
     
-    # Convert bytes to bytearray or bytes-like object
-    data_type_bytes = bytearray(data_type)
-    seq_num_bytes = bytearray(seq_num)
-    data_length_bytes = bytearray(data_length)
-    
     # Calculate checksum incrementally in chunks
     CHUNK_SIZE = MAX_DATA_SIZE  # adjust chunk size as needed
-    data_in_bytes = data.encode()
+    data_in_bytes = data.encode('utf-8')
     for i in range(0, len(data_in_bytes), CHUNK_SIZE):
         chunk = data_in_bytes[i:i+CHUNK_SIZE]
-        checksum = zlib.crc32(data_type_bytes + seq_num_bytes + data_length_bytes + chunk, checksum)
+        checksum = zlib.crc32(data_type + seq_num + data_length + chunk, checksum)
 
     return checksum.to_bytes(4, byteorder='big')
 
@@ -108,7 +103,7 @@ def extract_packet_info(packet):
     data_type = data_type.decode('utf-8')
     seq_num = bytes_to_int(seq_num)
     data_length = bytes_to_int(data_length)
-    checksum = bytes_to_int(checksum)
+    checksum = checksum.hex()
     
     return data_type, seq_num, data_length, checksum
 

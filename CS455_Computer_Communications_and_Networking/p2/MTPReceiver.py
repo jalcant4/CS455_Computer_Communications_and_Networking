@@ -51,17 +51,12 @@ def bytes_to_int(b):
 def calc_checksum(data_type, seq_num, data_length, data):
     checksum = 0
     
-    # Convert bytes to bytearray or bytes-like object
-    data_type_bytes = bytearray(data_type)
-    seq_num_bytes = bytearray(seq_num)
-    data_length_bytes = bytearray(data_length)
-    
     # Calculate checksum incrementally in chunks
     CHUNK_SIZE = MAX_DATA_SIZE  # adjust chunk size as needed
-    data_in_bytes = data.encode()
+    data_in_bytes = data.encode('utf-8')
     for i in range(0, len(data_in_bytes), CHUNK_SIZE):
         chunk = data_in_bytes[i:i+CHUNK_SIZE]
-        checksum = zlib.crc32(data_type_bytes + seq_num_bytes + data_length_bytes + chunk, checksum)
+        checksum = zlib.crc32(data_type + seq_num + data_length + chunk, checksum)
 
     return checksum.to_bytes(4, byteorder='big')
 
@@ -85,7 +80,7 @@ def extract_data_packet(packet):
     mtp_header = packet[:MTP_HEADER_SIZE]
     
     # Unpack the values from the MTP header using the struct format
-    data_type, seq_num, data_length, checksum, data = struct.unpack("!4s4s4s4s")
+    data_type, seq_num, data_length, checksum = struct.unpack("!4s4s4s4s", mtp_header)
 
     # Convert the bytes objects to integer values
     data_type = data_type.decode('utf-8')
@@ -137,7 +132,7 @@ def receive_thread(receiver_socket):
              break
         
         # start the timer
-        ack_checksum = calc_checksum(data_type.encode('utf-8'), data_seq_num, data_length, data)
+        ack_checksum = calc_checksum(data_type.encode('utf-8'), int_to_bytes(data_seq_num), int_to_bytes(data_length), data)
         in_sequence_and_checksum = validate(data_type, data_seq_num, data_length, data_checksum, ack_checksum.hex())
         # Arrival of an in-order packet with expected sequence #
         if in_sequence_and_checksum:
