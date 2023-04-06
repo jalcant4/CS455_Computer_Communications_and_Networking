@@ -282,7 +282,7 @@ def handle_dup_acks(s_n):
 
 def main():
 	global sender_socket, sender_address, receiver_address, window_size, packets, final_packet, input, sender_log
-	
+
 	try:
 		# read the command line arguments
 		receiver_ip = socket.gethostbyname(sys.argv[1])
@@ -330,6 +330,7 @@ def main():
 		snd_thread.join()
 
 	finally:
+		sender_socket.close()
 		sender_log.close()
 		input.close()
 

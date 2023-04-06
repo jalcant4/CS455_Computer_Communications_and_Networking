@@ -52,7 +52,7 @@ def calc_checksum(data_type, seq_num, data_length, data):
     checksum = 0
     
     # Convert bytes to bytearray or bytes-like object
-    data_type_bytes = bytearray(data_type.encode('utf-8'))
+    data_type_bytes = bytearray(data_type)
     seq_num_bytes = bytearray(seq_num)
     data_length_bytes = bytearray(data_length)
     
@@ -85,14 +85,13 @@ def extract_data_packet(packet):
     mtp_header = packet[:MTP_HEADER_SIZE]
     
     # Unpack the values from the MTP header using the struct format
-    data_type, seq_num, data_length, checksum = struct.unpack('!4s4s4s4s', mtp_header)
+    data_type, seq_num, data_length, checksum, data = struct.unpack("!4s4s4s4s")
 
     # Convert the bytes objects to integer values
     data_type = data_type.decode('utf-8')
     data_seq_num = bytes_to_int(seq_num)
     data_length = bytes_to_int(data_length)
     data_checksum = checksum.hex()
-    
     # Extract the data from the packet and decode it as UTF-8
     data = packet[MTP_HEADER_SIZE:].decode('utf-8')
 
@@ -100,6 +99,7 @@ def extract_data_packet(packet):
 
 
 def validate(data_type, data_seq_num, data_length, data_checksum, ack_checksum):
+
     if data_seq_num != expected_seq_number:
         status = "OUT OF ORDER PACKET"
     elif data_checksum != ack_checksum:
@@ -137,7 +137,7 @@ def receive_thread(receiver_socket):
              break
         
         # start the timer
-        ack_checksum = calc_checksum(data_type, data_seq_num, data_length, data)
+        ack_checksum = calc_checksum(data_type.encode('utf-8'), data_seq_num, data_length, data)
         in_sequence_and_checksum = validate(data_type, data_seq_num, data_length, data_checksum, ack_checksum.hex())
         # Arrival of an in-order packet with expected sequence #
         if in_sequence_and_checksum:
@@ -206,7 +206,8 @@ def main():
         rcv_thread = threading.Thread(target=receive_thread, args=[receiver_socket])
         rcv_thread.start()
         rcv_thread.join()
-    finally:    
+    finally:
+        receiver_socket.close()    
         receiver_log.close()
         output.close()
 # your main thread can act as the receive thread that receives DATA packets
