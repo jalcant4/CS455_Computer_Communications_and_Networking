@@ -1,105 +1,13 @@
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x00'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xb3m\xc0\x98'; calculated_checksum = b'\xb3m\xc0\x98'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x01'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\n\xa8\xfc\xf7'; calculated_checksum = b'\n\xa8\xfc\xf7'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x02'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b')\x8b\\\x9a'; calculated_checksum = b')\x8b\\\x9a'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x03'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xbb\xbe\xfa\x98'; calculated_checksum = b'\xbb\xbe\xfa\x98'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x04'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b"Y^|'"; calculated_checksum = b"Y^|'"; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x05'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xb45\xfc\x92'; calculated_checksum = b'\xb45\xfc\x92'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x06'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'A\t!\x05'; calculated_checksum = b'A\t!\x05'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x07'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'W\xd0\xf4\x88'; calculated_checksum = b'W\xd0\xf4\x88'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x08'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xf3\x81\xaav'; calculated_checksum = b'\xf3\x81\xaav'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\t'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'0\x8e\xfd\x90'; calculated_checksum = b'0\x8e\xfd\x90'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\n'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'/Z3\x04'; calculated_checksum = b'/Z3\x04'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x0b'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xaes$\xe8'; calculated_checksum = b'\xaes$\xe8'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x0c'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xfc\x0b\xc1\x88'; calculated_checksum = b'\xfc\x0b\xc1\x88'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\r'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xc9$V\xb2'; calculated_checksum = b'\xc9$V\xb2'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x0e'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xf8{W+'; calculated_checksum = b'\xf8{W+'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x0f'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x8fu\xf2\xfc'; calculated_checksum = b'\x8fu\xf2\xfc'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x10'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'{\xa2\xe0\x96'; calculated_checksum = b'{\xa2\xe0\x96'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x11'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'MS=\xde'; calculated_checksum = b'MS=\xde'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x12'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xf8\x8f\xb4\xf8'; calculated_checksum = b'\xf8\x8f\xb4\xf8'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x13'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x18\xa5\x1b\xe0'; calculated_checksum = b'\x18\xa5\x1b\xe0'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x14'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xf5E\x9de'; calculated_checksum = b'\xf5E\x9de'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x15'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xc0\xe2\xe4+'; calculated_checksum = b'\xc0\xe2\xe4+'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x16'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'W\xde\xf6?'; calculated_checksum = b'W\xde\xf6?'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x17'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x91v3\xb3'; calculated_checksum = b'\x91v3\xb3'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x18'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xac\xc9\xd6\xe6'; calculated_checksum = b'\xac\xc9\xd6\xe6'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x19'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xc2\xa1\xd3\xbf'; calculated_checksum = b'\xc2\xa1\xd3\xbf'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x1a'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xc0\xc6cs'; calculated_checksum = b'\xc0\xc6cs'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x1b'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xec\x04\x9f\xf1'; calculated_checksum = b'\xec\x04\x9f\xf1'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x1c'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'%\xa40d'; calculated_checksum = b'%\xa40d'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x1d'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xb9\x01+\xbd'; calculated_checksum = b'\xb9\x01+\xbd'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x1e'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xf7\xa8#0'; calculated_checksum = b'\xf7\xa8#0'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\x1f'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x93Y^\xb9'; calculated_checksum = b'\x93Y^\xb9'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00 '; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xcb\xb6\xeef'; calculated_checksum = b'\xcb\xb6\xeef'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00!'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xb2\xc1\x11\x19'; calculated_checksum = b'\xb2\xc1\x11\x19'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00"'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'c=50'; calculated_checksum = b'c=50'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00#'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xe9}jY'; calculated_checksum = b'\xe9}jY'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00$'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'r\xbev\xf5'; calculated_checksum = b'r\xbev\xf5'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00%'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'>\xbcH6'; calculated_checksum = b'>\xbcH6'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00&'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x88z\xec\xdf'; calculated_checksum = b'\x88z\xec\xdf'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b"\x00\x00\x00'"; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x8a\xa0L\xba'; calculated_checksum = b'\x8a\xa0L\xba'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00('; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'f\xb1\t\xe8'; calculated_checksum = b'f\xb1\t\xe8'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00)'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xbd\xafh7'; calculated_checksum = b'\xbd\xafh7'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00*'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xea\x16OX'; calculated_checksum = b'\xea\x16OX'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00+'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'{k!\xcf'; calculated_checksum = b'{k!\xcf'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00,'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x06&\xa8n'; calculated_checksum = b'\x06&\xa8n'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00-'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xf2\x15y\xef'; calculated_checksum = b'\xf2\x15y\xef'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00.'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'J\xc1c\xd8'; calculated_checksum = b'J\xc1c\xd8'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00/'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'u\xd2\xb8\x02'; calculated_checksum = b'u\xd2\xb8\x02'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x000'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'x\x84\xa51'; calculated_checksum = b'x\x84\xa51'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x001'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xe7\x9d\xe3\x9c'; calculated_checksum = b'\xe7\x9d\xe3\x9c'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x002'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x9a6\x1f\xcf'; calculated_checksum = b'\x9a6\x1f\xcf'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x003'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x92\x17\xa4\xc0'; calculated_checksum = b'\x92\x17\xa4\xc0'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x004'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x8bI\xdc0'; calculated_checksum = b'\x8bI\xdc0'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x005'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x9e\x94yl'; calculated_checksum = b'\x9e\x94yl'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x006'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x00a\x1c\xd8'; calculated_checksum = b'\x00a\x1c\xd8'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x007'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'K\xeb%S'; calculated_checksum = b'K\xeb%S'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x008'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x8f\xf3\x96\xf7'; calculated_checksum = b'\x8f\xf3\x96\xf7'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x009'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x08\x9e1\xcd'; calculated_checksum = b'\x08\x9e1\xcd'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00:'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xd2\xbf\x1as'; calculated_checksum = b'\xd2\xbf\x1as'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00;'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'f(Vq'; calculated_checksum = b'f(Vq'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00<'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xfa(\xc0\xbc'; calculated_checksum = b'\xfa(\xc0\xbc'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00='; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'}J\x8f\xda'; calculated_checksum = b'}J\x8f\xda'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00>'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'`\xac4E'; calculated_checksum = b'`\xac4E'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00?'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xbc\x16\x9c\x9b'; calculated_checksum = b'\xbc\x16\x9c\x9b'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00@'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xaa\xf5\xf2\x8d'; calculated_checksum = b'\xaa\xf5\xf2\x8d'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00A'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'^\x93\xe0u'; calculated_checksum = b'^\x93\xe0u'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00B'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x146)\xbd'; calculated_checksum = b'\x146)\xbd'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00C'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xd6\xb3\xaf\xf3'; calculated_checksum = b'\xd6\xb3\xaf\xf3'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00D'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'#\x1dt\x85'; calculated_checksum = b'#\x1dt\x85'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00E'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'^\x9e$\x0e'; calculated_checksum = b'^\x9e$\x0e'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00F'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xc6\xc8Z\x92'; calculated_checksum = b'\xc6\xc8Z\x92'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00G'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xe7C\x90u'; calculated_checksum = b'\xe7C\x90u'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00H'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'v\xfe\xb2\x94'; calculated_checksum = b'v\xfe\xb2\x94'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00I'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x84\xfe\xed\x84'; calculated_checksum = b'\x84\xfe\xed\x84'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00J'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xdd\xc3\xb9\xb0'; calculated_checksum = b'\xdd\xc3\xb9\xb0'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00K'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xbe6\xdc\xab'; calculated_checksum = b'\xbe6\xdc\xab'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00L'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xf0\xd6\xb2\xe7'; calculated_checksum = b'\xf0\xd6\xb2\xe7'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00M'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xd9iR\x9c'; calculated_checksum = b'\xd9iR\x9c'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00N'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x02.Cd'; calculated_checksum = b'\x02.Cd'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00O'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x0b\xd6\xfe\xde'; calculated_checksum = b'\x0b\xd6\xfe\xde'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00P'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'.F\x9c\xdc'; calculated_checksum = b'.F\x9c\xdc'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00Q'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'"g\xdfm'; calculated_checksum = b'"g\xdfm'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00R'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xd6\x85\xba\xf3'; calculated_checksum = b'\xd6\x85\xba\xf3'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00S'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x9c#[\xac'; calculated_checksum = b'\x9c#[\xac'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00T'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xb9\x1a\x8c\x92'; calculated_checksum = b'\xb9\x1a\x8c\x92'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00U'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'A\xb9\x12X'; calculated_checksum = b'A\xb9\x12X'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00V'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'3 /\xc9'; calculated_checksum = b'3 /\xc9'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00W'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xe2i\x10\x06'; calculated_checksum = b'\xe2i\x10\x06'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00X'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xd4\xdb)\x08'; calculated_checksum = b'\xd4\xdb)\x08'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00Y'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b' v\x00)'; calculated_checksum = b' v\x00)'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00Z'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xa5\xcf\x0f\xbc'; calculated_checksum = b'\xa5\xcf\x0f\xbc'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00['; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x1b\xffM\x83'; calculated_checksum = b'\x1b\xffM\x83'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\\'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xe1\xf3\x1f3'; calculated_checksum = b'\xe1\xf3\x1f3'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00]'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'F\xe5\x15J'; calculated_checksum = b'F\xe5\x15J'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00^'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'5R\xa1\xfa'; calculated_checksum = b'5R\xa1\xfa'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00_'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xe8\xb0\xbaS'; calculated_checksum = b'\xe8\xb0\xbaS'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00`'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\\\xfd\xb0\x02'; calculated_checksum = b'\\\xfd\xb0\x02'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00a'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x8du\x8c\x99'; calculated_checksum = b'\x8du\x8c\x99'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00b'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'Pv\x95\xcd'; calculated_checksum = b'Pv\x95\xcd'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00c'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x08\x84]\xf3'; calculated_checksum = b'\x08\x84]\xf3'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00d'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x07\x1d\x84\x16'; calculated_checksum = b'\x07\x1d\x84\x16'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00e'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'R]^\x1f'; calculated_checksum = b'R]^\x1f'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00f'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\xd4\x12\x97:'; calculated_checksum = b'\xd4\x12\x97:'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00g'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'0\x1c\x85\xbc'; calculated_checksum = b'0\x1c\x85\xbc'; status = NOT CORRUPT
-Packet_received: type= b'DATA'; seqNum = b'\x00\x00\x00\xc2'; length = b'\x00\x00\x05\xc0'; checksum_in_packet = b'\x84\xfc\xb9\x10'; calculated_checksum = b'\x84\xfc\xb9\x10'; status = OUT OF ORDER PACKET
+MTP Receiver is connecting .
+MTP Receiver is connecting ..
+MTP Receiver is connecting ...
+Packet_received: type=DATA; seqNum=0; length=1472; checksum_in_packet=0e162119; calculated_checksum=85eabc6a; status=CORRUPT
+Packet_received: type=DATA; seqNum=1; length=1472; checksum_in_packet=9bb5ce42; calculated_checksum=701af7f1; status=OUT OF ORDER PACKET
+Packet_received: type=DATA; seqNum=2; length=1472; checksum_in_packet=2c4f691e; calculated_checksum=52a4c01f; status=OUT OF ORDER PACKET
+Packet_received: type=DATA; seqNum=3; length=1472; checksum_in_packet=fa1684e4; calculated_checksum=0b133c85; status=OUT OF ORDER PACKET
+Packet_received: type=DATA; seqNum=4; length=1472; checksum_in_packet=eaa3a2b4; calculated_checksum=e00f1180; status=OUT OF ORDER PACKET
+Packet_received: type=DATA; seqNum=5; length=1472; checksum_in_packet=45c54461; calculated_checksum=d58bf262; status=OUT OF ORDER PACKET
+Packet_received: type=DATA; seqNum=6; length=1472; checksum_in_packet=8804ebf7; calculated_checksum=ae2d1b58; status=OUT OF ORDER PACKET
+Packet_received: type=DATA; seqNum=7; length=1472; checksum_in_packet=e342a28a; calculated_checksum=b0a95df0; status=OUT OF ORDER PACKET
+Packet_received: type=DATA; seqNum=8; length=1472; checksum_in_packet=e8dd3c32; calculated_checksum=51b6ae35; status=OUT OF ORDER PACKET
+Packet_received: type=DATA; seqNum=9; length=1472; checksum_in_packet=40149e69; calculated_checksum=002094eb; status=OUT OF ORDER PACKET

@@ -1,0 +1,14 @@
+Connecting sender socket ...
+Finished creating packets ...
+Opening receiver channel ...
+Starting to send packets ...
+Packet sent; type=DATA; seqNum=0; length=1472; checksum=236331289
+Packet sent; type=DATA; seqNum=1; length=1472; checksum=2612383298
+Packet sent; type=DATA; seqNum=2; length=1472; checksum=743401758
+Packet sent; type=DATA; seqNum=3; length=1472; checksum=4195779812
+Packet sent; type=DATA; seqNum=4; length=1472; checksum=3936592564
+Packet sent; type=DATA; seqNum=5; length=1472; checksum=1170556001
+Packet sent; type=DATA; seqNum=6; length=1472; checksum=2282023927
+Packet sent; type=DATA; seqNum=7; length=1472; checksum=3812795018
+Packet sent; type=DATA; seqNum=8; length=1472; checksum=3906812978
+Packet sent; type=DATA; seqNum=9; length=1472; checksum=1075093097

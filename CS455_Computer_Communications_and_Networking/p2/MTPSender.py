@@ -19,9 +19,10 @@ MTP_HEADER_SIZE = 16
 MAX_DATA_SIZE = 1500 - UDP_HEADER_SIZE - MTP_HEADER_SIZE
 ACK_TIMEOUT = 0.5
 MAX_DUP_ACKS = 3
+FINAL_SEQ_NUM = 2 ** 31
 
-SENDER_IP = "127.0.0.2"
-SENDER_PORT = 8888
+SENDER_IP = '127.0.0.1'
+SENDER_PORT = 8001
 
 # define and initialize
 sender_address = (SENDER_IP, SENDER_PORT)
@@ -70,7 +71,7 @@ def calc_checksum(data_type, seq_num, data_length, data):
     data_length_bytes = bytearray(data_length)
     
     # Calculate checksum incrementally in chunks
-    CHUNK_SIZE = 1024  # adjust chunk size as needed
+    CHUNK_SIZE = MAX_DATA_SIZE  # adjust chunk size as needed
     data_in_bytes = data.encode()
     for i in range(0, len(data_in_bytes), CHUNK_SIZE):
         chunk = data_in_bytes[i:i+CHUNK_SIZE]
@@ -164,7 +165,7 @@ def receive_thread(r_socket):
 					elif ack_seq_num <= last_ack_seq_num:
 						dup_ack_count += 1
 
-						if dup_ack_count == 3:
+						if dup_ack_count == MAX_DUP_ACKS:
 							handle_dup_acks(ack_seq_num + 1)
 					
 		time.sleep(0.1)
@@ -184,7 +185,7 @@ def send_packet(sender_socket, packet, receiver_address):
 # only sends packets within the window
 # assumption: must be ran after receive_thread
 def send_thread(sender_socket, packets):
-	global window, window_base, acks, timer, lock
+	global timer, lock
 	
 	while len(acks) != len(packets):
 		#set window
@@ -200,9 +201,10 @@ def send_thread(sender_socket, packets):
 			timer = Timer(ACK_TIMEOUT, handle_timeout)
 			timer.start()
 
-		while last_ack_seq_num != len(acks):
-			# Wait for acks before sending next window
-			time.sleep(1)
+		with lock:
+			while last_ack_seq_num != window:
+				# Wait for acks before sending next window
+				time.sleep(0.1)
 
 		if (len(acks) == len(packets)):
 			break
@@ -214,12 +216,11 @@ def send_thread(sender_socket, packets):
 def update_window(start):
 	global window, window_base
 
-	with lock:
-			window_base = start
-			if window + window_size < len(packets):
-				window += window_size
-			else:
-				window = len(packets) - window
+	window_base = start
+	if window_base + window_size < len(packets):
+		window = window_base + window_size
+	else:
+		window = window_base + (len(packets) - window_base)
 
 
 def handle_timeout():
@@ -280,45 +281,57 @@ def handle_dup_acks(s_n):
 
 
 def main():
-	global sender_socket, sender_address, packets, receiver_address, window_size, input, sender_log
-    # read the command line arguments
-	receiver_ip = socket.gethostbyname(sys.argv[1])
-	receiver_port = int (sys.argv[2])
-	receiver_address = (receiver_ip, receiver_port)
-	window_size = int (sys.argv[3])
-	# open log file and start logging
-	input = open (sys.argv[4], "r")
-	sender_log = open (sys.argv[5], "w+")
-
-
-	# open the UDP socket
-	sender_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-	sender_socket.bind(sender_address)
+	global sender_socket, sender_address, receiver_address, window_size, packets, final_packet, input, sender_log
 	
- 
-	# creates packets
-	seq_num = 0
-	segment = input.read(MAX_DATA_SIZE)
-	while segment:
-		# append to list of packets
-		packets.append(create_data_packet(segment, seq_num))
-		# update
+	try:
+		# read the command line arguments
+		receiver_ip = socket.gethostbyname(sys.argv[1])
+		receiver_port = int (sys.argv[2])
+		receiver_address = (receiver_ip, receiver_port)
+		window_size = int (sys.argv[3])
+		# open log file and start logging
+		input = open (sys.argv[4], "r")
+		sender_log = open (sys.argv[5], "w+")
+
+
+		# open the UDP socket
+		sender_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		sender_log.write("Connecting sender socket ...\n")
+		sender_socket.bind(sender_address)
+
+
+		# creates packets
+		seq_num = 0
 		segment = input.read(MAX_DATA_SIZE)
-		seq_num +=1
+		while segment:
+			# append to list of packets
+			packets.append(create_data_packet(segment, seq_num))
+			# update
+			segment = input.read(MAX_DATA_SIZE)
+			seq_num +=1
+		final_packet = create_data_packet("", FINAL_SEQ_NUM)
+		packets.append(final_packet)
+		sender_log.write("Finished creating packets ...\n")
 
 
-	# start receive thread (modify as needed) which receives ACKs
-	recv_thread = threading.Thread(target=receive_thread, args=(sender_socket,))
-	recv_thread.start()
+		# start receive thread (modify as needed) which receives ACKs
+		sender_log.write("Opening receiver channel ...\n")
+		recv_thread = threading.Thread(target=receive_thread, args=(sender_socket,))
+		recv_thread.start()
 
-	
-    # while there are packets to send:
-	# send packets to receiver using our unreliable_channel.send_packet()
-	# update the window size, timer, etc.
-	snd_thread = threading.Thread(target=send_thread, args=(sender_socket, packets))
-	snd_thread.start()
+		# while there are packets to send:
+		# send packets to receiver using our unreliable_channel.send_packet()
+		# update the window size, timer, etc.
+		sender_log.write("Starting to send packets ...\n")
+		snd_thread = threading.Thread(target=send_thread, args=(sender_socket, packets))
+		snd_thread.start()
 
+		recv_thread.join()
+		snd_thread.join()
+
+	finally:
+		sender_log.close()
+		input.close()
 
 # your main thread can act as the send thread which sends data packets  
 main()
-
