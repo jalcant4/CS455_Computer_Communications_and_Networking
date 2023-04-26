@@ -20,7 +20,7 @@ FINAL_SEQ_NUM = 0x7FFFFFFF
 
 ## define and initialize
 # rec_window_size, rec_window_base, seq_number, dup_ack_count, etc.
-receiver_ip = '127.0.0.0'
+receiver_ip = '127.0.0.1'
 receiver_port = None
 output = None
 receiver_log = None
@@ -137,7 +137,7 @@ def receive_thread(receiver_socket):
             with lock:
                 expected_seq_number += 1
 
-            if received_data.count(data) == 0:
+            if received_data.count(data_packet) == 0:
                 received_data.append(data_packet)
                 output.write(data.decode('utf-8'))
 

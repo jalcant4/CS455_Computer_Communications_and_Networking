@@ -16,11 +16,11 @@ UDP_HEADER_SIZE = 28
 MTP_HEADER_SIZE = 16
 MAX_DATA_SIZE = 1500 - UDP_HEADER_SIZE - MTP_HEADER_SIZE
 TIMEOUT = 0.5
-FINAL_SEQ_NUM = 2 ** 31
+FINAL_SEQ_NUM = 0x7FFFFFFF
 
 ## define and initialize
 # rec_window_size, rec_window_base, seq_number, dup_ack_count, etc.
-receiver_ip = '127.0.0.0'
+receiver_ip = '127.0.0.1'
 receiver_port = None
 output = None
 receiver_log = None
@@ -53,7 +53,7 @@ def calc_checksum(data_type, seq_num, data_length, data):
     
     # Calculate checksum incrementally in chunks
     CHUNK_SIZE = MAX_DATA_SIZE  # adjust chunk size as needed
-    data_in_bytes = data.encode('utf-8')
+    data_in_bytes = data
     for i in range(0, len(data_in_bytes), CHUNK_SIZE):
         chunk = data_in_bytes[i:i+CHUNK_SIZE]
         checksum = zlib.crc32(data_type + seq_num + data_length + chunk, checksum)
@@ -64,12 +64,7 @@ def calc_checksum(data_type, seq_num, data_length, data):
 
 # MTP ACK packet will have the same fields in its header, without any data.
 # assumption: must call extract_data_packet, otherwise behavior is undefined
-def create_ack_packet(packet_type, seq_num, packet_length, checksum):
-    global ack_seq_num, ack_length
-
-    ack_seq_num = int_to_bytes(seq_num)
-    ack_length = int_to_bytes(packet_length)
-    
+def create_ack_packet(packet_type, ack_seq_num, ack_length, checksum):
     packet_format = '!4s4s4s4s'
     packet = struct.pack(packet_format, packet_type, ack_seq_num, ack_length, checksum)
     return packet
@@ -88,7 +83,7 @@ def extract_data_packet(packet):
     data_length = bytes_to_int(data_length)
     data_checksum = checksum.hex()
     # Extract the data from the packet and decode it as UTF-8
-    data = packet[MTP_HEADER_SIZE:].decode('utf-8')
+    data = packet[MTP_HEADER_SIZE:]
 
     return data_type, data_seq_num, data_length, data_checksum, data
 
@@ -142,12 +137,12 @@ def receive_thread(receiver_socket):
             with lock:
                 expected_seq_number += 1
 
-            if received_data.count(data) == 0:
-                received_data.append(data)
-                output.write(data)
+            if received_data.count(data_packet) == 0:
+                received_data.append(data_packet)
+                output.write(data.decode('utf-8'))
 
             # create ack packet with seq_num and send to sender
-            ack_packet = create_ack_packet(b'_ACK', data_seq_num, MTP_HEADER_SIZE, ack_checksum)
+            ack_packet = create_ack_packet(b'_ACK', int_to_bytes(data_seq_num), int_to_bytes(MTP_HEADER_SIZE), ack_checksum)
             send_ack(ack_packet, sender_addr)
             timer.start()
         # Arrival of an out-of-order packet with higher-than-expected sequence 
@@ -157,7 +152,7 @@ def receive_thread(receiver_socket):
                 data_type, seq_num, length, checksum, data = extract_data_packet(received_data[len(received_data) - 1])
                 timer = Timer(TIMEOUT, handle_timeout)
 
-                ack_packet = create_ack_packet(b'ACK', seq_num, MTP_HEADER_SIZE, bytes.fromhex(checksum))
+                ack_packet = create_ack_packet(b'_ACK', int_to_bytes(seq_num), int_to_bytes(MTP_HEADER_SIZE), bytes.fromhex(checksum))
                 send_ack(ack_packet, sender_addr)    
                 timer.start()
             
@@ -174,7 +169,7 @@ def handle_timeout():
         
         timer = Timer(TIMEOUT, handle_timeout)
 
-        ack_packet = create_ack_packet(b'ACK', seq_num, MTP_HEADER_SIZE, bytes.fromhex(checksum))
+        ack_packet = create_ack_packet(b'_ACK', int_to_bytes(seq_num), int_to_bytes(MTP_HEADER_SIZE), bytes.fromhex(checksum))
         send_ack(ack_packet, sender_addr)    
         timer.start()
 

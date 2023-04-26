@@ -19,7 +19,7 @@ MTP_HEADER_SIZE = 16
 MAX_DATA_SIZE = 1500 - UDP_HEADER_SIZE - MTP_HEADER_SIZE
 ACK_TIMEOUT = 0.5
 MAX_DUP_ACKS = 3
-FINAL_SEQ_NUM = 2 ** 31
+FINAL_SEQ_NUM = 0x7FFFFFFF
 
 SENDER_IP = '127.0.0.1'
 SENDER_PORT = 8001
@@ -67,7 +67,7 @@ def calc_checksum(data_type, seq_num, data_length, data):
     
     # Calculate checksum incrementally in chunks
     CHUNK_SIZE = MAX_DATA_SIZE  # adjust chunk size as needed
-    data_in_bytes = data.encode('utf-8')
+    data_in_bytes = data
     for i in range(0, len(data_in_bytes), CHUNK_SIZE):
         chunk = data_in_bytes[i:i+CHUNK_SIZE]
         checksum = zlib.crc32(data_type + seq_num + data_length + chunk, checksum)
@@ -85,10 +85,10 @@ def create_data_packet(data, seq_num):
     seq_num = int_to_bytes(seq_num)
     data_length = int_to_bytes(len(data) + MTP_HEADER_SIZE)
     checksum = calc_checksum(data_type, seq_num, data_length, data)
-    data = data.encode('utf-8')
 
     packet_format = "!4s4s4s4s{}s".format(len(data))
     packet = struct.pack(packet_format, data_type, seq_num, data_length, checksum, data)
+    print(packet)
     return packet
 
 
@@ -132,7 +132,7 @@ def receive_thread(r_socket):
 						ack_data_type, ack_seq_num, ack_data_length, ack_checksum, local_checksum
 					))
 					# update triple dup acks
-					if ack_seq_num <= last_ack_seq_num:
+					if ack_seq_num == last_ack_seq_num:
 							dup_ack_count += 1
 
 							if dup_ack_count == MAX_DUP_ACKS:
@@ -167,6 +167,10 @@ def receive_thread(r_socket):
 						timer.start()
 						dup_ack_count = 0
 
+	sender_socket.close()
+	sender_log.close()
+	input.close()
+
 
 def send_packet(sender_socket, packet, receiver_address):
 	global sender_log
@@ -184,7 +188,7 @@ def send_packet(sender_socket, packet, receiver_address):
 def send_thread(sender_socket, packets):
 	global timer, lock
 	
-	while len(acks) < len(packets):
+	while last_ack_seq_num < len(packets) - 1:
 		#set window
 		update_window(window)
 
@@ -205,6 +209,7 @@ def send_thread(sender_socket, packets):
 
 		if (len(acks) == len(packets)):
 			break
+
 
 
 # locks and protects the window
@@ -293,7 +298,7 @@ def main():
 		receiver_address = (receiver_ip, receiver_port)
 		window_size = int (sys.argv[3])
 		# open log file and start logging
-		input = open (sys.argv[4], "r")
+		input = open (sys.argv[4], "rb")
 		sender_log = open (sys.argv[5], "w+")
 
 
@@ -312,7 +317,7 @@ def main():
 			# update
 			segment = input.read(MAX_DATA_SIZE)
 			seq_num +=1
-		final_packet = create_data_packet("", FINAL_SEQ_NUM)
+		final_packet = create_data_packet(b'', FINAL_SEQ_NUM)
 		packets.append(final_packet)
 		sender_log.write("Finished creating {} packets ...\n".format(len(packets)))
 

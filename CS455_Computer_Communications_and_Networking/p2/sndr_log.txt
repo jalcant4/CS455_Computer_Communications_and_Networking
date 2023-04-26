@@ -14,10 +14,6 @@ Packet sent; type=DATA; seqNum=7; length=1472; checksum=e342a28a
 Packet sent; type=DATA; seqNum=8; length=1472; checksum=e8dd3c32
 Packet sent; type=DATA; seqNum=9; length=1472; checksum=40149e69
 Packet sent; type=DATA; seqNum=10; length=1472; checksum=a18566c9
-Packet sent; type=DATA; seqNum=11; length=1472; checksum=1ddd05f8
-Packet sent; type=DATA; seqNum=12; length=1472; checksum=956e06a1
-Packet sent; type=DATA; seqNum=13; length=1472; checksum=4f2f917c
-Packet sent; type=DATA; seqNum=14; length=1472; checksum=4b2b698f
 Packet_received; type=_ACK; seqNum=0; length=16; checksum_in_packet=0e162119; checksum_calculated=0e162119; status=NOT_CORRUPT;
 Packet_received; type=_ACK; seqNum=0; length=16; checksum_in_packet=0e162119; checksum_calculated=0e162119; status=OUT_OF_ORDER;
 Packet_received; type=_ACK; seqNum=0; length=16; checksum_in_packet=0e162119; checksum_calculated=0e162119; status=OUT_OF_ORDER;
@@ -26,23 +22,8 @@ Handling Triple Dup ACKs
 Window_base:1 Window:31
 Packet sent; type=DATA; seqNum=1; length=1472; checksum=9bb5ce42
 Packet sent; type=DATA; seqNum=2; length=1472; checksum=2c4f691e
-Packet sent; type=DATA; seqNum=16; length=1472; checksum=bf533b77
-Packet sent; type=DATA; seqNum=17; length=1472; checksum=b0093bc8
-Packet sent; type=DATA; seqNum=18; length=1472; checksum=8ba7233d
-Packet sent; type=DATA; seqNum=19; length=1472; checksum=cf63c3c9
-Packet sent; type=DATA; seqNum=20; length=1472; checksum=fd47414c
-Packet sent; type=DATA; seqNum=21; length=1472; checksum=dc199afb
-Packet sent; type=DATA; seqNum=22; length=1472; checksum=e1486699
-Packet sent; type=DATA; seqNum=23; length=1472; checksum=2aaf98f1
-Packet sent; type=DATA; seqNum=24; length=1472; checksum=4ea03cf5
-Packet sent; type=DATA; seqNum=25; length=1472; checksum=12fe9430
-Packet sent; type=DATA; seqNum=26; length=1472; checksum=51a0657c
-Packet sent; type=DATA; seqNum=27; length=1472; checksum=5ef8151d
-Packet sent; type=DATA; seqNum=28; length=1472; checksum=e3b9ab91
 Packet sent; type=DATA; seqNum=3; length=1472; checksum=fa1684e4
-Packet sent; type=DATA; seqNum=29; length=1472; checksum=bf4877a0
 Packet sent; type=DATA; seqNum=4; length=1472; checksum=eaa3a2b4
-Packet sent; type=DATA; seqNum=30; length=1472; checksum=1439a74a
 Packet sent; type=DATA; seqNum=5; length=1472; checksum=45c54461
 Packet sent; type=DATA; seqNum=6; length=1472; checksum=8804ebf7
 Packet sent; type=DATA; seqNum=7; length=1472; checksum=e342a28a
@@ -73,3 +54,121 @@ Packet_received; type=_ACK; seqNum=0; length=16; checksum_in_packet=0e162119; ch
 Packet_received; type=_ACK; seqNum=0; length=16; checksum_in_packet=0e162119; checksum_calculated=0e162119; status=OUT_OF_ORDER;
 Packet_received; type=_ACK; seqNum=0; length=16; checksum_in_packet=0e162119; checksum_calculated=0e162119; status=OUT_OF_ORDER;
 Handling Triple Dup ACKs
+Window_base:1 Window:31
+Packet sent; type=DATA; seqNum=1; length=1472; checksum=9bb5ce42
+Packet sent; type=DATA; seqNum=2; length=1472; checksum=2c4f691e
+Packet sent; type=DATA; seqNum=3; length=1472; checksum=fa1684e4
+Packet sent; type=DATA; seqNum=4; length=1472; checksum=eaa3a2b4
+Packet sent; type=DATA; seqNum=5; length=1472; checksum=45c54461
+Packet sent; type=DATA; seqNum=6; length=1472; checksum=8804ebf7
+Packet sent; type=DATA; seqNum=7; length=1472; checksum=e342a28a
+Packet sent; type=DATA; seqNum=8; length=1472; checksum=e8dd3c32
+Packet sent; type=DATA; seqNum=9; length=1472; checksum=40149e69
+Packet sent; type=DATA; seqNum=10; length=1472; checksum=a18566c9
+Packet sent; type=DATA; seqNum=11; length=1472; checksum=1ddd05f8
+Packet sent; type=DATA; seqNum=12; length=1472; checksum=956e06a1
+Packet sent; type=DATA; seqNum=13; length=1472; checksum=4f2f917c
+Packet sent; type=DATA; seqNum=14; length=1472; checksum=4b2b698f
+Packet sent; type=DATA; seqNum=15; length=1472; checksum=03054827
+Packet sent; type=DATA; seqNum=16; length=1472; checksum=bf533b77
+Packet sent; type=DATA; seqNum=17; length=1472; checksum=b0093bc8
+Packet sent; type=DATA; seqNum=18; length=1472; checksum=8ba7233d
+Packet sent; type=DATA; seqNum=19; length=1472; checksum=cf63c3c9
+Packet sent; type=DATA; seqNum=20; length=1472; checksum=fd47414c
+Packet sent; type=DATA; seqNum=21; length=1472; checksum=dc199afb
+Packet sent; type=DATA; seqNum=22; length=1472; checksum=e1486699
+Packet sent; type=DATA; seqNum=23; length=1472; checksum=2aaf98f1
+Packet sent; type=DATA; seqNum=24; length=1472; checksum=4ea03cf5
+Packet sent; type=DATA; seqNum=25; length=1472; checksum=12fe9430
+Packet sent; type=DATA; seqNum=26; length=1472; checksum=51a0657c
+Packet sent; type=DATA; seqNum=27; length=1472; checksum=5ef8151d
+Packet sent; type=DATA; seqNum=28; length=1472; checksum=e3b9ab91
+Packet sent; type=DATA; seqNum=29; length=1472; checksum=bf4877a0
+Packet sent; type=DATA; seqNum=30; length=1472; checksum=1439a74a
+Packet_received; type=_ACK; seqNum=0; length=16; checksum_in_packet=0e162119; checksum_calculated=0e162119; status=OUT_OF_ORDER;
+Packet_received; type=_ACK; seqNum=0; length=16; checksum_in_packet=0e162119; checksum_calculated=0e162119; status=OUT_OF_ORDER;
+Packet_received; type=_ACK; seqNum=0; length=16; checksum_in_packet=0e162119; checksum_calculated=0e162119; status=OUT_OF_ORDER;
+Handling Triple Dup ACKs
+Window_base:1 Window:31
+Packet sent; type=DATA; seqNum=1; length=1472; checksum=9bb5ce42
+Packet sent; type=DATA; seqNum=2; length=1472; checksum=2c4f691e
+Packet sent; type=DATA; seqNum=3; length=1472; checksum=fa1684e4
+Packet sent; type=DATA; seqNum=4; length=1472; checksum=eaa3a2b4
+Packet sent; type=DATA; seqNum=5; length=1472; checksum=45c54461
+Packet sent; type=DATA; seqNum=6; length=1472; checksum=8804ebf7
+Packet sent; type=DATA; seqNum=7; length=1472; checksum=e342a28a
+Packet sent; type=DATA; seqNum=8; length=1472; checksum=e8dd3c32
+Packet sent; type=DATA; seqNum=9; length=1472; checksum=40149e69
+Packet sent; type=DATA; seqNum=10; length=1472; checksum=a18566c9
+Packet sent; type=DATA; seqNum=11; length=1472; checksum=1ddd05f8
+Packet sent; type=DATA; seqNum=12; length=1472; checksum=956e06a1
+Packet sent; type=DATA; seqNum=13; length=1472; checksum=4f2f917c
+Packet sent; type=DATA; seqNum=14; length=1472; checksum=4b2b698f
+Packet sent; type=DATA; seqNum=15; length=1472; checksum=03054827
+Packet sent; type=DATA; seqNum=16; length=1472; checksum=bf533b77
+Packet sent; type=DATA; seqNum=17; length=1472; checksum=b0093bc8
+Packet sent; type=DATA; seqNum=18; length=1472; checksum=8ba7233d
+Packet sent; type=DATA; seqNum=19; length=1472; checksum=cf63c3c9
+Packet sent; type=DATA; seqNum=20; length=1472; checksum=fd47414c
+Packet sent; type=DATA; seqNum=21; length=1472; checksum=dc199afb
+Packet sent; type=DATA; seqNum=22; length=1472; checksum=e1486699
+Packet sent; type=DATA; seqNum=23; length=1472; checksum=2aaf98f1
+Packet sent; type=DATA; seqNum=24; length=1472; checksum=4ea03cf5
+Packet sent; type=DATA; seqNum=25; length=1472; checksum=12fe9430
+Packet sent; type=DATA; seqNum=26; length=1472; checksum=51a0657c
+Packet sent; type=DATA; seqNum=27; length=1472; checksum=5ef8151d
+Packet sent; type=DATA; seqNum=28; length=1472; checksum=e3b9ab91
+Packet sent; type=DATA; seqNum=29; length=1472; checksum=bf4877a0
+Packet sent; type=DATA; seqNum=12; length=1472; checksum=956e06a1
+Packet sent; type=DATA; seqNum=2; length=1472; checksum=2c4f691e
+Packet sent; type=DATA; seqNum=13; length=1472; checksum=4f2f917c
+Packet sent; type=DATA; seqNum=14; length=1472; checksum=4b2b698f
+Packet sent; type=DATA; seqNum=15; length=1472; checksum=03054827
+Packet sent; type=DATA; seqNum=16; length=1472; checksum=bf533b77
+Packet sent; type=DATA; seqNum=17; length=1472; checksum=b0093bc8
+Packet sent; type=DATA; seqNum=18; length=1472; checksum=8ba7233d
+Packet sent; type=DATA; seqNum=19; length=1472; checksum=cf63c3c9
+Packet sent; type=DATA; seqNum=20; length=1472; checksum=fd47414c
+Packet sent; type=DATA; seqNum=21; length=1472; checksum=dc199afb
+Packet sent; type=DATA; seqNum=22; length=1472; checksum=e1486699
+Packet sent; type=DATA; seqNum=23; length=1472; checksum=2aaf98f1
+Packet sent; type=DATA; seqNum=24; length=1472; checksum=4ea03cf5
+Packet sent; type=DATA; seqNum=25; length=1472; checksum=12fe9430
+Packet sent; type=DATA; seqNum=26; length=1472; checksum=51a0657c
+Packet sent; type=DATA; seqNum=27; length=1472; checksum=5ef8151d
+Packet sent; type=DATA; seqNum=28; length=1472; checksum=e3b9ab91
+Packet sent; type=DATA; seqNum=29; length=1472; checksum=bf4877a0
+Packet sent; type=DATA; seqNum=30; length=1472; checksum=1439a74a
+Packet sent; type=DATA; seqNum=3; length=1472; checksum=fa1684e4
+Packet sent; type=DATA; seqNum=4; length=1472; checksum=eaa3a2b4
+Packet sent; type=DATA; seqNum=5; length=1472; checksum=45c54461
+Packet sent; type=DATA; seqNum=6; length=1472; checksum=8804ebf7
+Packet sent; type=DATA; seqNum=7; length=1472; checksum=e342a28a
+Packet sent; type=DATA; seqNum=8; length=1472; checksum=e8dd3c32
+Packet sent; type=DATA; seqNum=9; length=1472; checksum=40149e69
+Packet sent; type=DATA; seqNum=10; length=1472; checksum=a18566c9
+Packet sent; type=DATA; seqNum=11; length=1472; checksum=1ddd05f8
+Packet sent; type=DATA; seqNum=12; length=1472; checksum=956e06a1
+Packet sent; type=DATA; seqNum=13; length=1472; checksum=4f2f917c
+Packet sent; type=DATA; seqNum=14; length=1472; checksum=4b2b698f
+Packet sent; type=DATA; seqNum=15; length=1472; checksum=03054827
+Packet sent; type=DATA; seqNum=16; length=1472; checksum=bf533b77
+Packet sent; type=DATA; seqNum=17; length=1472; checksum=b0093bc8
+Packet sent; type=DATA; seqNum=18; length=1472; checksum=8ba7233d
+Packet sent; type=DATA; seqNum=19; length=1472; checksum=cf63c3c9
+Packet sent; type=DATA; seqNum=20; length=1472; checksum=fd47414c
+Packet sent; type=DATA; seqNum=21; length=1472; checksum=dc199afb
+Packet sent; type=DATA; seqNum=22; length=1472; checksum=e1486699
+Packet sent; type=DATA; seqNum=23; length=1472; checksum=2aaf98f1
+Packet sent; type=DATA; seqNum=24; length=1472; checksum=4ea03cf5
+Packet sent; type=DATA; seqNum=25; length=1472; checksum=12fe9430
+Packet sent; type=DATA; seqNum=26; length=1472; checksum=51a0657c
+Packet sent; type=DATA; seqNum=27; length=1472; checksum=5ef8151d
+Packet sent; type=DATA; seqNum=28; length=1472; checksum=e3b9ab91
+Packet sent; type=DATA; seqNum=29; length=1472; checksum=bf4877a0
+Packet sent; type=DATA; seqNum=30; length=1472; checksum=1439a74a
+Packet_received; type=_ACK; seqNum=0; length=16; checksum_in_packet=0e162119; checksum_calculated=0e162119; status=OUT_OF_ORDER;
+Packet_received; type=_ACK; seqNum=0; length=16; checksum_in_packet=0e162119; checksum_calculated=0e162119; status=OUT_OF_ORDER;
+Packet_received; type=_ACK; seqNum=0; length=16; checksum_in_packet=0e162119; checksum_calculated=0e162119; status=OUT_OF_ORDER;
+Handling Triple Dup ACKs
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
