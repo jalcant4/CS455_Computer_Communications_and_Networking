@@ -38,7 +38,6 @@
  ###############################################################################################################################################################   
     
 import socket
-import sys
 import threading
 
 # Global variables
@@ -60,7 +59,6 @@ def network_init():
         for line in file:                                           # for each line in file
             DV[node_index] = [int(x) for x in line.split(" ")]      # "0 2 0 0 1" -> [0, 2, 0, 0, 1]
             dv_len = len(DV[node_index])
-            print(f"DV at Node {nodes[node_index]} = {DV[node_index]}")
 
             for edge in range(dv_len):                              # access each individual element in line
                 if DV[node_index][edge] == 0 and edge != node_index:
@@ -126,7 +124,7 @@ def receive_dv_messages(server_node):
     while True:
         conn, addr = server_socket.accept()
 
-        port_no = addr[1]                                                           # addr = (ip_address, port_no)
+        port_no = int(addr[1])                                                           # addr = (ip_address, port_no)
         for client_node, client_port in ports.items():                              # ports = {'A': 8000, ...}
             if client_port == port_no:
                 print(f"Node {server_node} received DV from {client_node}")
