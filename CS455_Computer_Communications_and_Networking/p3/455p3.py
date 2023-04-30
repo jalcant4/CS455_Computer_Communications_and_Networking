@@ -41,39 +41,39 @@ import socket
 import threading
 import time
 
-MAX = 10000
+MAX = 10000                                                         # any value equal or greater is invalid
 
 # Global variables
 nodes = ['A', 'B', 'C', 'D', 'E']
 ports = {'A': 8001, 'B': 8002, 'C': 8003, 'D': 8004, 'E': 8005}
 DV = {}  # Distance vector table
-
+N = 0
+FINAL_NODE = None
 
 lock = threading.Lock()
-
 
 stop_flag = 0
 round_counter = 0                                                   # round counter 0 to N
                                                                     # round 0 init, round 1 to N node_behavior
 
 def network_init():
+    global DV, N, FINAL_NODE
     threads = []
     # Read and parse txt file to initialize distance vector table (DV)
     # and set initial distances between nodes
     with open('network.txt', 'r') as file:
-        node_index = 0                                              # node is a counter for the position of the node
-        for line in file:                                           # for each line in file
-            DV[node_index] = [int(x) for x in line.split(" ")]      # "0 2 0 0 1" -> [0, 2, 0, 0, 1]
-            
-            dv_len = len(DV[node_index])
-            for edge in range(dv_len):                              # access each individual element in line
+        node_index = 0                                                  # node is a counter for the position of the node
+        for line in file:                                               # for each line in file
+            DV[node_index] = [int(x) for x in line.split(" ")]          # "0 2 0 0 1" -> [0, 2, 0, 0, 1]
+
+            N = len(DV[node_index])
+            FINAL_NODE = nodes[N - 1]
+            for edge in range(N):                                       # access each individual element in line
                 if DV[node_index][edge] == 0 and edge != node_index:
-                    DV[node_index][edge] = MAX                      # if there is no immediate connection, set to MAX int
+                    DV[node_index][edge] = MAX                          # if there is no immediate connection, set to MAX int
 
-
-            # Create and start thread for sending and receiving messages
+            # Create and start thread for sending, receiving messages
             node = nodes[node_index]                                # node = 'A' or 'B' or ... or 'E'
-            
             t_node = threading.Thread(target=node_behavior, args=(node,))
             t_node.start()
             threads.append(t_node)
@@ -88,95 +88,78 @@ def network_init():
 
 def node_behavior(node):
     global round_counter, stop_flag
+    node_socket = socket.socket(socket.AF_INET)
+    node_socket.bind(('localhost', ports[node]))
 
-    node_index = nodes.index(node)
-    N = len(DV[node_index])
     while round_counter < N:
-        if round_counter == 0:
-            print(f"INIT Node {node}")
-            recv_dv_messages(node)
+        old_counter = round_counter
+        if round_counter == 0:                                              #init
+            print(f"INIT {node}")
+            recv_dv_messages(node_socket, node)
 
-            if node == nodes[N - 1]:
+            if node == FINAL_NODE:
+                round_counter += 1
+                print(f"-------------------------------------------------")
+
+
+        elif round_counter > 0:                                             # from 1 to N
+            print(f"Round {round_counter}: {node}")
+            print(f"Current DV = {DV[nodes.index(node)]}")
+            send_dv_messages(node_socket, node)
+
+            if node == FINAL_NODE:
                 round_counter += 1
 
-            while round_counter == 0:
-                time.sleep(0.5)
+    node_socket.close()
 
-        elif round_counter > 0:
-            print(f"Round {round_counter}: {node}")
-            curr_counter = round_counter
-            print(f"Current DV = {DV[node_index]}")
-            for each in nodes:
-                send_dv_messages(node, each)
+
+
+def send_dv_messages(send_socket, send_node):                                       
+    for recv_node in nodes:
+        send_index = nodes.index(send_node)
+        recv_index = nodes.index(recv_node)
+        if recv_node != send_node or DV[send_index][recv_index] < MAX:
+            try:
+                neighbor_node = nodes[recv_index]                                       # attempt to retrieve neighbor    
+                neighbor_address = ('localhost', ports[neighbor_node])                  # define neighbor address
+                send_socket.connect(neighbor_address)                                   # connect to neighbor address
                 
-                if each == nodes[N - 1] and node == nodes[N - 1]:
-                    round_counter += 1
-
-            recv_dv_messages(node)
-
-            while curr_counter == round_counter:
-                time.sleep(0.5)
-
-
-def send_dv_messages(send_node, recv_node):
-    send_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    send_address = ('localhost', ports[send_node])
-    send_socket.bind(send_address)                                         
-
-    while True:
-        with lock:
-                send_index = nodes.index(send_node)
-                recv_index = nodes.index(recv_node)
-                if send_node != recv_node or DV[send_index][recv_index] != MAX:
-                    try:
-                        neighbor_node = nodes[recv_index]                                       # attempt to retrieve neighbor    
-                        neighbor_address = ('localhost', ports[neighbor_node])                  # define neighbor address
-                        send_socket.connect(neighbor_address)                                   # connect to neighbor address
-                        
-                        print(f"Sending DV to node {neighbor_node}")                            # IMP: send message
-                        dv_message = f"{nodes[send_index]}:{DV[send_index]}"                    # if 'A' send A:{0, 2, 0, 0, 1}
-                        send_socket.sendall(dv_message.encode())
-                        send_socket.close()
-                    except Exception:
-                        print(f"Failed to send DV from {nodes[send_index]} to {neighbor_node}")
-                        break
+                print(f"Sending DV to node {neighbor_node}")                            # IMP: send message
+                dv_message = f"{nodes[send_index]}:{DV[send_index]}"                    # if 'A' send A:{0, 2, 0, 0, 1}
+                send_socket.sendall(dv_message.encode())
+            except Exception:
+                print(f"Failed to send DV from {nodes[send_index]} to {neighbor_node}")
+                break
 
 
-def recv_dv_messages(recv_node):
-    recv_ctr = 0
-    recv_DV = DV[nodes.index(recv_node)]
-    for dv in recv_DV:
-        if dv > 0 and dv < MAX:
-            recv_ctr += 1
+def recv_dv_messages(recv_socket, recv_node):
+    exp_num_sndr_msgs = 0                                                                      # expected number of sender messages
+    recv_dv = DV[nodes.index(recv_node)]                                                       # get the dv of the receiver node
+    for dv in recv_dv:                                                                         # increment the number of expected sender messages
+        if dv > 0 and dv < MAX:                                                                # valid if the dv is not self or some connection 
+            exp_num_sndr_msgs += 1
+    
+    recv_socket.listen(exp_num_sndr_msgs)                                                      # Create a listener
+    while exp_num_sndr_msgs > 0:
+        client_socket, address = recv_socket.accept()
 
-    recv_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    recv_address = ('localhost', ports[recv_node])
-    recv_socket.bind(recv_address)  
-    recv_socket.listen(len(recv_DV))                                                            # Create a listener to listen for N times
+        data = client_socket.recv(1024).decode()                                               # data is always format "A:[X, Y, ...,Z]"
+        client_node, client_dv = data.split(':')
+        client_dv = [int(x) for x in client_dv[1:-1].split(",")]
+        print(f"Node {recv_node} received DV from {client_node}")
 
-    while recv_ctr > 0:
-        conn, addr = recv_socket.accept()
-
-        port_no = addr[1]                                                                       # addr = (ip_address, port_no)
-        for client_node, client_port in ports.items():                                          # ports = {'A': 8000, ...}
-            if client_port == port_no:
-                print(f"Node {recv_node} received DV from {client_node}")
-
-        data = conn.recv(1024).decode()                                                         # data is decoded into int
-        client_dv = [int(x) for x in data[3:-1].split(",")]                                     # data is always format "A:[X, Y, ...,Z]"
-
-        print(f"Updating DV at Node {recv_node}")
+        print(f"Updating DV at Node {recv_node}")                                               # check the received data
         calc_DV(recv_node, client_node, client_dv)
 
-        if DV[nodes.index(recv_node)] != recv_DV:
+        if DV[nodes.index(recv_node)] != recv_dv:                                               # if the dv is updated notify    
             print(f"New DV at Node {recv_node} = {DV[nodes.index(recv_node)]}")
 
-        conn.close()
-        recv_ctr -= 1
-    recv_socket.close()
+        client_socket.close()
+        exp_num_sndr_msgs -= 1
         
 
 def calc_DV(server_node, client_node, client_DV):
+    global DV
     # given we are in Node A, we DV info from Node B
     # Old node:            {0 2 0 0 1}
     # client node:         {2 0 5 0 0}
@@ -188,7 +171,7 @@ def calc_DV(server_node, client_node, client_DV):
 
     client_index = nodes.index(client_node)
     client_offset = DV[server_index][client_index]
-    with lock:
+    with dv_lock:
         for index in range(dv_len):
             if index != server_index:                                              # if self dont update at server_index
                 continue
