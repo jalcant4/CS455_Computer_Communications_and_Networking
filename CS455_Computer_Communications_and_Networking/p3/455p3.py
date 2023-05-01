@@ -14,6 +14,7 @@ DV = {}  # Distance vector table
 N = 0
 
 lock = threading.Lock()
+output_lock = threading.Lock()
 round_counter = 1                                                           # round 1 to N
 turn_order = 0                                                              # whose turn to send messages
 output = open("output.txt", "a+")                                           # with output as f
@@ -74,7 +75,7 @@ def server_behavior(server_socket):
     while round_counter < N:
         if sockets.index(server_socket) == turn_order:                                      # if my turn, fill output_sockets
             output_sockets = get_neighbors(server_node)
-            with lock:
+            with output_lock:
                 with output as f:          
                     print(f"Round {round_counter}: {server_node}", file= f)
                     print(f"Current DV = {curr_dv}", file= f)
@@ -91,16 +92,16 @@ def server_behavior(server_socket):
         
         if len(writable) > 0:
             for client_socket in writable: 
-                with lock:
-                    send_dv_messages(server_socket, client_socket)                          # send a message, then increment next
+                send_dv_messages(server_socket, client_socket)                          # send a message, then increment next
                 output_sockets.remove(client_socket)
             
             turn_order += 1
             if server_node == nodes[-1]:                                                    # reset turn order when we get to the final node
                 round_counter += 1
-                turn_order = 0       
-                with output as f:  
-                    print("-------------------------------------------------", file= f)
+                turn_order = 0   
+                with output_lock:    
+                    with output as f:  
+                        print("-------------------------------------------------", file= f)
         
         for data in readable:
             last_dv = curr_dv
@@ -119,8 +120,9 @@ def send_dv_messages(send_socket, recv_socket):
     recv_node = nodes[sockets.index(recv_socket)]
     try:
         receiver_address = ('localhost', ports[recv_node])                                  # define receiver address
-        with output as f:
-            print(f"Sending DV to node {recv_node}", file= f)                               # IMP: send message
+        with output_lock:
+            with output as f:
+                print(f"Sending DV to node {recv_node}", file= f)                               # IMP: send message
         dv_message = f"{send_node}:{DV[sockets.index(send_socket)]}"                        # if 'A' send A:{0, 2, 0, 0, 1}
         send_socket.sendto(dv_message.encode(), receiver_address)
 
@@ -139,18 +141,20 @@ def recv_dv_messages(server_socket, data):
         server_node = nodes[sockets.index(server_socket)]
         server_dv = DV[nodes.index(server_node)]
         client_node, client_dv = data.split(':')
-        client_dv = [int(x) for x in client_dv[1:-1].split(",")]
 
-        with output as f:                                                                   # print that you received data
-            print(f"Node {server_node} received DV from {client_node}", file= f)
-            print(f"Updating DV at Node {server_node}", file= f)
+        client_dv = [int(x) for x in client_dv[1:-1].split(",")]
+        with output_lock:
+            with output as f:                                                               # print that you received data
+                print(f"Node {server_node} received DV from {client_node}", file= f)
+                print(f"Updating DV at Node {server_node}", file= f)
 
         calc_DV(server_node, client_node, client_dv)                                        # check the received data
-        with output as f:
-            if DV[nodes.index(server_node)] != server_dv:                                   # if the dv is updated  
-                print(f"New DV at Node {server_node} = {DV[nodes.index(server_node)]}", file= f)
-            else:                                                                           # was not updated
-                print(f"No change in DV at Node {server_node}", file= f)
+        with output_lock:
+            with output as f:
+                if DV[nodes.index(server_node)] != server_dv:                               # if the dv is updated  
+                    print(f"New DV at Node {server_node} = {DV[nodes.index(server_node)]}", file= f)
+                else:                                                                       # was not updated
+                    print(f"No change in DV at Node {server_node}", file= f)
 
     except BlockingIOError:                                                                 # no incoming messages
         print(f"BlockingIOError in Node {server_node}")
