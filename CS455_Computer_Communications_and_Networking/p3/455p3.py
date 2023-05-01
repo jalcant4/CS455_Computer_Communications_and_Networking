@@ -1,8 +1,8 @@
 # Jed Mendoza G00846927
-    
+import select
 import socket
 import threading
-import select
+import time
 
 MAX = 10000                                                                 # any value equal or greater is invalid
 
@@ -23,7 +23,7 @@ output = open("output.txt", "a+")                                           # wi
 def network_init():
     global DV, N, sockets
     threads = []
-    _ = open("output.txt", "w+")                                                        # reset output
+    _ = open("output.txt", "w")                                                        # reset output
 
     # Read and parse txt file to initialize distance vector table (DV)
     # and set initial distances between nodes
@@ -70,29 +70,26 @@ def server_behavior(server_socket):
 
     input_data = []                                                                         # server expects messages from these
     output_sockets = []                                                                     # server writes to these sockets 
-
-
     while round_counter < N:
         if sockets.index(server_socket) == turn_order:                                      # if my turn, fill output_sockets
             output_sockets = get_neighbors(server_node)
-            with output_lock:
-                with output as f:          
-                    print(f"Round {round_counter}: {server_node}", file= f)
-                    print(f"Current DV = {curr_dv}", file= f)
-                    print(f"Last DV = {last_dv}", file= f)
-
+            with output_lock:       
+                print(f"Round {round_counter}: {server_node}", file= output)
+                print(f"Current DV = {curr_dv}", file= output)
+                print(f"Last DV = {last_dv}", file= output)
         try:
-            data, _ = server_socket.recv(1024)
+            data = server_socket.recv(1024)
             if data:
                 input_data.append(data)
-        except BlockingIOError:
+        except Exception as e:
+            print(f"Error in server from Node {server_node}: {e}")                            
             pass
-        
-        readable, writable, exceptional = select.select(input_data, output_sockets, [], 0.5)
+
+        readable, writable, exceptional = select.select(input_data, output_sockets, [], 0.1)
         
         if len(writable) > 0:
             for client_socket in writable: 
-                send_dv_messages(server_socket, client_socket)                          # send a message, then increment next
+                send_dv_messages(server_socket, client_socket)                              # send a message, then increment next
                 output_sockets.remove(client_socket)
             
             turn_order += 1
@@ -100,12 +97,11 @@ def server_behavior(server_socket):
                 round_counter += 1
                 turn_order = 0   
                 with output_lock:    
-                    with output as f:  
-                        print("-------------------------------------------------", file= f)
+                    print("-------------------------------------------------", file= output)
         
         for data in readable:
             last_dv = curr_dv
-            recv_dv_messages(server_socket, client_socket)
+            recv_dv_messages(server_socket, data)
             input_data.remove(data)
 
         for something in exceptional:
@@ -121,20 +117,13 @@ def send_dv_messages(send_socket, recv_socket):
     try:
         receiver_address = ('localhost', ports[recv_node])                                  # define receiver address
         with output_lock:
-            with output as f:
-                print(f"Sending DV to node {recv_node}", file= f)                               # IMP: send message
+            print(f"Sending DV to Node {recv_node} w/ port no. {ports[recv_node]}", file= output)
         dv_message = f"{send_node}:{DV[sockets.index(send_socket)]}"                        # if 'A' send A:{0, 2, 0, 0, 1}
         send_socket.sendto(dv_message.encode(), receiver_address)
-
-    except ConnectionError:
-        print(f"Connection error while sending message to Node {recv_node}")
-        pass
-    except TimeoutError:
-        print(f"Timeout error while sending message to Node {recv_node}")
-        pass
     except Exception as e:
-        print(f"Error sending message to Node {recv_node}: {e}")                            
+        print(f"Error sending message from Node {send_node} to Node {recv_node}: {e}")                            
         pass                                                                                # end send_dv_messages
+
 
 def recv_dv_messages(server_socket, data):
     try:
@@ -144,22 +133,17 @@ def recv_dv_messages(server_socket, data):
 
         client_dv = [int(x) for x in client_dv[1:-1].split(",")]
         with output_lock:
-            with output as f:                                                               # print that you received data
-                print(f"Node {server_node} received DV from {client_node}", file= f)
-                print(f"Updating DV at Node {server_node}", file= f)
+            print(f"Node {server_node} received DV from {client_node}", file= output)
+            print(f"Updating DV at Node {server_node}", file= output)
 
-        calc_DV(server_node, client_node, client_dv)                                        # check the received data
+        calc_DV(server_node, client_node, client_dv)                                    # check the received data
         with output_lock:
-            with output as f:
-                if DV[nodes.index(server_node)] != server_dv:                               # if the dv is updated  
-                    print(f"New DV at Node {server_node} = {DV[nodes.index(server_node)]}", file= f)
-                else:                                                                       # was not updated
-                    print(f"No change in DV at Node {server_node}", file= f)
-
-    except BlockingIOError:                                                                 # no incoming messages
-        print(f"BlockingIOError in Node {server_node}")
-        pass
-    except:                                                                                 # other error
+            if DV[nodes.index(server_node)] != server_dv:                               # if the dv is updated  
+                print(f"New DV at Node {server_node} = {DV[nodes.index(server_node)]}", file= output)
+            else:                                                                       # was not updated
+                print(f"No change in DV at Node {server_node}", file= output)
+    except Exception as e:
+        print(f"Error receiving message in Node {server_node} from Node {client_node}: {e}")                            
         pass                                                                                # end recv_dv_messages
         
 
@@ -200,8 +184,8 @@ def get_neighbors(server_node):
 def main():
     try:
         network_init()
-        with output as f:
-            print(f"Routing algorithm stopped", file= f)
+        print(f"Routing algorithm stopped", file= output)
+
     finally:
         for socket in sockets:
             socket.close()

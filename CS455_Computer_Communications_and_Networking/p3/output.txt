@@ -1,3 +1,8 @@
 Round 1: A
 Current DV = [0, 2, 10000, 10000, 1]
 Last DV = [0, 2, 10000, 10000, 1]
+Sending DV to Node B w/ port no. 8002
+Sending DV to Node E w/ port no. 8005
+Round 1: B
+Current DV = [2, 0, 5, 10000, 10000]
+Last DV = [2, 0, 5, 10000, 10000]
