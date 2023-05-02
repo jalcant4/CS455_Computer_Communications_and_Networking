@@ -12,19 +12,21 @@ ports = {'A': 8001, 'B': 8002, 'C': 8003, 'D': 8004, 'E': 8005}
 addresses = []
 threads = []
 DV = {}  # Distance vector table
-LOCALHOST = '127.0.0.1'
-N = 0
+HOST = '127.0.0.1'
+N = 1
 
 lock = threading.Lock()
 output_lock = threading.Lock()
 round_counter = 1                                                           # round 1 to N
 turn_order = 0                                                              # whose turn to send messages
 output = open("output.txt", "a+")                                           # with output as f
+logging = open("logging.txt", "a+" )
 
 
 def network_init():
     global DV, N, addresses, threads
     _ = open("output.txt", "w")                                                        # reset output
+    _ = open("logging.txt", "w")
 
     # Read and parse txt file to initialize distance vector table (DV)
     # and set initial distances between nodes
@@ -41,19 +43,19 @@ def network_init():
             # Create and start thread for sending, receiving messages
             server_node = nodes[node_index]                                             # node = 'A' or 'B' or ... or 'E'
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            server_address = (LOCALHOST, ports[server_node])
+            server_address = (HOST, ports[server_node])
             server_socket.bind(server_address)
-            print(f"Node {server_node} is listening")
+            #print(f"Node {server_node} is listening")
             server_socket.listen(N)
-            server_socket.settimeout(0.5)
+            #server_socket.settimeout(0.5)
             
             # setup select
-            print(f"Blocking set to false in Node {server_node}")
+            #print(f"Blocking set to false in Node {server_node}")
             server_socket.setblocking(0)                                                # allows multiple socket access
             addresses.append(server_address)
 
             # create threads
-            print(f"Creating thread for Node {server_node}")
+            #print(f"Creating thread for Node {server_node}")
             server_thread = threading.Thread(target=server_behavior, args=(server_socket, server_node))
             threads.append(server_thread)
 
@@ -62,6 +64,7 @@ def network_init():
 
         # start  and wait for all threads
         for t in threads:
+
             t.start()
         for t in threads:
             t.join()
@@ -70,44 +73,44 @@ def network_init():
 def server_behavior(server_socket, server_node):
     global round_counter, turn_order, addresses, threads
     client_sockets = []                                                                     # client sockets to connect over TCP
+    client_addresses = []                                                            # server writes to these addresses
 
     try:
         curr_dv = DV[nodes.index(server_node)]
         last_dv = curr_dv
 
-        input_data = []                                                                     # server reads these messages
-        output_addresses = []                                                               # server writes to these addresses 
         while round_counter < N:
-            if nodes.index(server_node) == turn_order:                                      # if its my turn to send
-                output_addresses = get_neighbors(server_node)
+            if nodes.index(server_node) == turn_order:                                      # if its my turn to send to my neighbors
+                neighbors = get_neighbors(server_node)
+                
+                for each in neighbors:
+                    if client_addresses.count(each) == 0:
+                        print(f"Added {each} to Node {server_node} neighbor addresses")
+                        server_socket.connect(each)
+                        client_addresses.append(each)
+
                 with output_lock:       
                     print(f"Round {round_counter}: {server_node}", file= output)
                     print(f"Current DV = {curr_dv}", file= output)
                     print(f"Last DV = {last_dv}", file= output)
+                    
             else:                                                                           # else its my turn to listen
                 try:
-                    client_socket, client_address = server_socket.accept()
-
-                    if client_socket:
-                        data = client_socket.recv(1024)
-                        print(f"Node {server_node} received {data}")
-                        input_data.append(data)
-
-                        if client_sockets.count(client_socket) == 0:
-                            client_sockets.append(client_socket)
+                    client_socket, _ = server_socket.accept()
+                    if client_sockets.count(client_socket) == 0:
+                        client_sockets.append(client_socket)
                 except Exception as e:
                     print(f"Error accepting in server from Node {server_node}: {e}")
                     time.sleep(0.5)                  
                     pass
 
-            readable, writable, exceptional = select.select(input_data, output_addresses, [], 0.1)
-            
+            readable, writable, exceptional = select.select(client_sockets, client_addresses, [], 0.5)
             if nodes.index(server_node) == turn_order:
                 for client_address in writable: 
                     print(f"Node {server_node} is sending to {client_address}")
                     send_dv_messages(server_socket, client_address)                             # send a message, then increment next
-                    output_addresses.remove(client_address)
-
+                    time.sleep(1)                                                               # allow server to send the dv
+                        
                 turn_order += 1
                 if server_node == nodes[-1]:                                                    # reset turn order when we get to the final node
                     round_counter += 1
@@ -115,20 +118,23 @@ def server_behavior(server_socket, server_node):
                     with output_lock:    
                         print("-------------------------------------------------", file= output)
             
-            for data in readable:
+            for client in readable:
                 last_dv = curr_dv
-                recv_dv_messages(server_node, data)
-                input_data.remove(data)
+                try:
+                    data = client.recv(1024)
+                    print(f"Node {server_node} received {data}")
+                    recv_dv_messages(server_node, data)
+                except Exception as e:
+                    print(f"Node {server_node} unable to receive message from {client}")
 
             for something in exceptional:
-                print(f"Error: {something} in Node {server_node}")
-                input_data.clear()
-                output_addresses.clear()    
+                print(f"Error: {something} in Node {server_node}")    
                 break
 
     finally:
         for each in client_sockets:
             each.close()
+        client_addresses.clear()
         server_socket.close()                                                                   # end server_behavior
 
 
@@ -137,11 +143,10 @@ def send_dv_messages(send_socket, recv_address):
     recv_node = nodes[addresses.index(recv_address)]
     print(f"Node {send_node} sending to Node {recv_node}, address {recv_address}")
     try:
-        send_socket.connect(recv_address)
         with output_lock:
             print(f"Sending DV to Node {recv_node} w/ {recv_address[1]}", file= output)
         dv_message = f"{send_node}:{DV[addresses.index(send_socket)]}"                      # if 'A' send A:{0, 2, 0, 0, 1}
-        send_socket.send(dv_message.encode())
+        send_socket.send(dv_message.encode())    
     except Exception as e:
         print(f"Error sending message from Node {send_node} to Node {recv_node}: {e}")                            
         pass                                                                                # end send_dv_messages
@@ -196,7 +201,7 @@ def get_neighbors(server_node):
     index = 0
     for neighbor in server_dv:
         if neighbor != 0 and neighbor < MAX:
-            print(f"Node {server_node} and my neighbor is {addresses[index]}")
+            #print(f"Node {server_node} and my neighbor is {addresses[index]}")
             neighbors.append(addresses[index])
         index += 1  
 
@@ -206,10 +211,11 @@ def get_neighbors(server_node):
 def main():
     try:
         network_init()
-        print(f"Routing algorithm stopped", file= output)
 
     finally:
+        print(f"Routing algorithm stopped", file= output)
         output.close()
+        logging.close()
         
 if __name__ == "__main__":
     main()

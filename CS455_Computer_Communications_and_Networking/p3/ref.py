@@ -92,6 +92,7 @@ def receive_dv_messages(node):
         data = conn.recv(1024).decode()
         dv = [int(cost) for cost in data.split(' ')]
         dv_messages[node] = dv
+        print(f"DV:{dv} and dv message: {dv_messages}")
         conn.close()
 
 
@@ -159,119 +160,119 @@ if __name__ == '__main__':
 # Python idiom to prevent executing code meant for module import.
  ###############################################################################################################################################################   
     
-import socket
-import threading
-import time
+# import socket
+# import threading
+# import time
 
-# Global variables
-nodes = ['A', 'B', 'C', 'D', 'E']
-ports = {'A': 8001, 'B': 8002, 'C': 8003, 'D': 8004, 'E': 8005}
-DV = {}  # Distance vector table
-lock = threading.Lock()
-stop_flag = False  # Stop condition flag
-
-
-def network_init():
-    # Read and parse txt file to initialize distance vector table (DV)
-    # and set initial distances between nodes
-    with open('network.txt', 'r') as file:
-        for line in file:
-            node, neighbor, distance = line.split()
-            if node not in DV:
-                DV[node] = {}
-            DV[node][neighbor] = int(distance)
-            DV[node][node] = 0
+# # Global variables
+# nodes = ['A', 'B', 'C', 'D', 'E']
+# ports = {'A': 8001, 'B': 8002, 'C': 8003, 'D': 8004, 'E': 8005}
+# DV = {}  # Distance vector table
+# lock = threading.Lock()
+# stop_flag = False  # Stop condition flag
 
 
-def send_DV(node):
-    # Send distance vector (DV) to neighboring nodes
-    for neighbor in DV[node]:
-        if neighbor != node:
-            try:
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sock.connect(('localhost', ports[neighbor]))
-                message = f"{node}:{DV[node]}"                              
-                sock.sendall(message.encode())
-                sock.close()
-            except ConnectionRefusedError:
-                print(f"Failed to send DV from {node} to {neighbor}")
+# def network_init():
+#     # Read and parse txt file to initialize distance vector table (DV)
+#     # and set initial distances between nodes
+#     with open('network.txt', 'r') as file:
+#         for line in file:
+#             node, neighbor, distance = line.split()
+#             if node not in DV:
+#                 DV[node] = {}
+#             DV[node][neighbor] = int(distance)
+#             DV[node][node] = 0
 
 
-def update_DV(node, new_DV):
-    # Update distance vector (DV) with new information
-    with lock:
-        if DV[node] != new_DV:
-            DV[node] = new_DV
-            return True
-        else:
-            return False
+# def send_DV(node):
+#     # Send distance vector (DV) to neighboring nodes
+#     for neighbor in DV[node]:
+#         if neighbor != node:
+#             try:
+#                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#                 sock.connect(('localhost', ports[neighbor]))
+#                 message = f"{node}:{DV[node]}"                              
+#                 sock.sendall(message.encode())
+#                 sock.close()
+#             except ConnectionRefusedError:
+#                 print(f"Failed to send DV from {node} to {neighbor}")
 
 
-def calculate_new_DV(node):
-    # Recalculate distance vector (DV) based on received DV from neighboring nodes
-    new_DV = DV[node].copy()
-    for neighbor in DV[node]:
-        if neighbor != node:
-            for dest in DV[neighbor]:
-                if dest != node:
-                    cost = DV[node][neighbor] + DV[neighbor][dest]
-                    if dest not in new_DV or cost < new_DV[dest]:
-                        new_DV[dest] = cost
-    return new_DV
+# def update_DV(node, new_DV):
+#     # Update distance vector (DV) with new information
+#     with lock:
+#         if DV[node] != new_DV:
+#             DV[node] = new_DV
+#             return True
+#         else:
+#             return False
 
 
-def receive_DV(node):
-    # Receive distance vector (DV) from neighboring nodes
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(('localhost', ports[node]))
-    sock.listen(5)
-    while not stop_flag:
-        conn, addr = sock.accept()
-        data = conn.recv(1024).decode()
-        sender, received_DV = data.split(':')
-        received_DV = eval(received_DV)
-        conn.close()
-        if update_DV(sender, received_DV):
-            print(f"Node {node} received DV from {sender}")
-            print(f"Updating DV at node {node}")
-            print(f"New DV at node {node} = {DV[node]}")
-            send_DV(node)  # Broadcast updated DV to neighboring nodes
+# def calculate_new_DV(node):
+#     # Recalculate distance vector (DV) based on received DV from neighboring nodes
+#     new_DV = DV[node].copy()
+#     for neighbor in DV[node]:
+#         if neighbor != node:
+#             for dest in DV[neighbor]:
+#                 if dest != node:
+#                     cost = DV[node][neighbor] + DV[neighbor][dest]
+#                     if dest not in new_DV or cost < new_DV[dest]:
+#                         new_DV[dest] = cost
+#     return new_DV
 
 
-def routing_algorithm():
-    # Main routing algorithm logic
-    rounds = 0
-    while not stop_flag:
-        for node in nodes:
-            rounds += 1
-            print(f"Round {rounds}: {node}")
-            print(f"Current DV = {DV[node]}")
-            last_DV = DV[node].copy()
-            send_DV(node)  # Broadcast DV to neighboring nodes
-            time.sleep(1)  # Wait for DV to propagate
-            if not update_DV(node, calculate_new_DV(node)):
-                print(f"No change in DV at node {node}")
-            else:
-                print(f"Updated DV at node {node} = {DV[node]}")
-                time.sleep(5)  # Wait for all nodes to update their DV
+# def receive_DV(node):
+#     # Receive distance vector (DV) from neighboring nodes
+#     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#     sock.bind(('localhost', ports[node]))
+#     sock.listen(5)
+#     while not stop_flag:
+#         conn, addr = sock.accept()
+#         data = conn.recv(1024).decode()
+#         sender, received_DV = data.split(':')
+#         received_DV = eval(received_DV)
+#         conn.close()
+#         if update_DV(sender, received_DV):
+#             print(f"Node {node} received DV from {sender}")
+#             print(f"Updating DV at node {node}")
+#             print(f"New DV at node {node} = {DV[node]}")
+#             send_DV(node)  # Broadcast updated DV to neighboring nodes
 
 
-if __name__ == '__main__':
-    network_init()
-    # Start thread for receiving DV from neighboring nodes
-    receive_threads = []
-    for node in nodes:
-        t = threading.Thread(target=receive_DV, args=(node,))
-        t.start()
-        receive_threads.append(t)
-    # Start main routing algorithm thread
-    routing_thread = threading.Thread(target=routing_algorithm)
-    routing_thread.start()
-    # Wait for threads to complete
-    for t in receive_threads:
-        t.join()
-    routing_thread.join()
-    print("Routing algorithm stopped")
+# def routing_algorithm():
+#     # Main routing algorithm logic
+#     rounds = 0
+#     while not stop_flag:
+#         for node in nodes:
+#             rounds += 1
+#             print(f"Round {rounds}: {node}")
+#             print(f"Current DV = {DV[node]}")
+#             last_DV = DV[node].copy()
+#             send_DV(node)  # Broadcast DV to neighboring nodes
+#             time.sleep(1)  # Wait for DV to propagate
+#             if not update_DV(node, calculate_new_DV(node)):
+#                 print(f"No change in DV at node {node}")
+#             else:
+#                 print(f"Updated DV at node {node} = {DV[node]}")
+#                 time.sleep(5)  # Wait for all nodes to update their DV
+
+
+# if __name__ == '__main__':
+#     network_init()
+#     # Start thread for receiving DV from neighboring nodes
+#     receive_threads = []
+#     for node in nodes:
+#         t = threading.Thread(target=receive_DV, args=(node,))
+#         t.start()
+#         receive_threads.append(t)
+#     # Start main routing algorithm thread
+#     routing_thread = threading.Thread(target=routing_algorithm)
+#     routing_thread.start()
+#     # Wait for threads to complete
+#     for t in receive_threads:
+#         t.join()
+#     routing_thread.join()
+#     print("Routing algorithm stopped")
     
     
 #     Explanation:
