@@ -55,7 +55,7 @@ def network_init():
             addresses.append(server_address)
 
             # create threads
-            #print(f"Creating thread for Node {server_node}")
+            # print(f"Creating thread for Node {server_node}")
             server_thread = threading.Thread(target=server_behavior, args=(server_socket, server_node))
             threads.append(server_thread)
 
@@ -64,7 +64,6 @@ def network_init():
 
         # start  and wait for all threads
         for t in threads:
-
             t.start()
         for t in threads:
             t.join()
@@ -93,15 +92,14 @@ def server_behavior(server_socket, server_node):
                     print(f"Round {round_counter}: {server_node}", file= output)
                     print(f"Current DV = {curr_dv}", file= output)
                     print(f"Last DV = {last_dv}", file= output)
-                    
+
             else:                                                                           # else its my turn to listen
                 try:
                     client_socket, _ = server_socket.accept()
                     if client_sockets.count(client_socket) == 0:
                         client_sockets.append(client_socket)
                 except Exception as e:
-                    print(f"Error accepting in server from Node {server_node}: {e}")
-                    time.sleep(0.5)                  
+                    print(f"Error accepting in server from Node {server_node}: {e}")                
                     pass
 
             readable, writable, exceptional = select.select(client_sockets, client_addresses, [], 0.5)
@@ -109,7 +107,7 @@ def server_behavior(server_socket, server_node):
                 for client_address in writable: 
                     print(f"Node {server_node} is sending to {client_address}")
                     send_dv_messages(server_socket, client_address)                             # send a message, then increment next
-                    time.sleep(1)                                                               # allow server to send the dv
+                time.sleep(1)                                                                   # allow server to send the dv
                         
                 turn_order += 1
                 if server_node == nodes[-1]:                                                    # reset turn order when we get to the final node
@@ -124,6 +122,7 @@ def server_behavior(server_socket, server_node):
                     data = client.recv(1024)
                     print(f"Node {server_node} received {data}")
                     recv_dv_messages(server_node, data)
+                    client.close()
                 except Exception as e:
                     print(f"Node {server_node} unable to receive message from {client}")
 
