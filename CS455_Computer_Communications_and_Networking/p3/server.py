@@ -2,7 +2,6 @@
 
 import select
 import socket
-import subprocess
 import threading
 import time
 
@@ -10,7 +9,7 @@ import time
 SERVER_ADDRESS = ('127.0.0.1', 8000)
 DV = {}                                                                                 # Distance vector table
 MAX = 10000                                                                             # Assign Maximum distance
-N = 0                                                                                   # Number of nodes
+N = 5                                                                                   # Number of nodes
 BUFFER_SIZE = 1024                                                                      # Largest buff size
 
 # global variables
@@ -27,33 +26,11 @@ connections = []                                                                
 # files
 output = open("output.txt", "w+")
 server_log = open("server_log.txt", "w+")
-error_log = open("error_log.txt", "w+")
-
-
-def network_init():
-    global server_socket, N
-    N = 0
-    # parse network.txt
-    with open('network.txt', 'r') as file:                                              
-        for line in file:                                                               # each line in file represents a node
-            DV[nodes[N]] = []
-            line = [int(x) for x in line.split(" ")]                                    # line = "0 2 0 0 1" -> [0, 2, 0, 0, 1]
-            
-            line_length = len(line)
-            for index in range(line_length):
-                if line[index] != N and line[index] == 0:    
-                    line[index] = MAX   
-                index += 1
-
-            args = ['python3', 'client.py', nodes[N], str(line)]
-            subprocess.run(args)
-            print(f"Starting subprocess: {args}", file= server_log)
-
-            N += 1
-        N -= 1                                                                          # Fix N
+error_log = open("error_log.txt", "w+")                                                                      # Fix N
 
 
 def server_init():
+    global server_socket
     # Create a TCP/IP socket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -61,12 +38,13 @@ def server_init():
     print(f"Starting up on {SERVER_ADDRESS[0]} Port {SERVER_ADDRESS[1]}", file= server_log)
     server_socket.bind(SERVER_ADDRESS)
 
-    # Listen for incoming connections
+    # 1 Listen for incoming connections
     server_socket.listen(N)
 
-    # Get connections
+    # 2 Get connections
+    max_connections = 1
     num_conn = 0
-    while num_conn < 1:
+    while num_conn < max_connections:
         
         print(f"Waiting for a connection", file= server_log)
         
@@ -75,56 +53,51 @@ def server_init():
             if value == client_address[1]:
                 client_node = key
         
-        print(f"Client Node: {client_node}, Connection Address {client_address}", file= server_log)
+        # print(f"Client Node: {client_node}, Connection Address {client_address}", file= server_log)
         connections.append(connection)
         num_conn += 1
+        
+        # 3 Receive the data then retransmit it
+        while round_counter < N:
+            readable, _, _ = select.select(connections, [], [], 0.5)
 
+            for connection in readable:
+                try:
+                    data = connection.recv(BUFFER_SIZE)                                 # data
+                    if data:
+                        print(f"Received {data.decode()}", file= server_log)
 
-def server_action():
-    global server_socket
+                        client_node, client_dv = data.split(":")
+                        client_dv = [int(x) for x in client_dv[1:-1].split(",")]
 
-    while round_counter < N:
-        readable, _, _ = select.select(connections, [], [], 0.5)
-
-        for connection in readable:
-            try:
-                # Receive the data then retransmit it
-                data = connection.recv(BUFFER_SIZE)                                 # 2.
-                if data:
-                    print(f"Received {data.decode()}", file= server_log)
-
-                    client_node, client_dv = data.split(":")
-                    client_dv = [int(x) for x in client_dv[1:-1].split(",")]
-
-                    print(f"Round {round_counter}: {client_node}")                  # 1. start the round
-                    print(f"Current DV = {client_dv}")                              # 2. the dv the client sent is the current dv
-                    last_dv = DV[nodes.index(client_node)]
-                    print(f"Last DV = {last_dv}")                                   # 3. the dv in the server is the last dv
-                    
-                    update = (client_dv != last_dv)                                 # 4. check if it was updated
-                    if update:
-                        print(f"Updated from last DV or the same? Updated")
-
-                        DV[nodes.index(client_node)] = client_dv
-                    else:
-                        print(f"Updated from last DV or the same? Same")
-
-                    #print(f"Forwarding data to {}", file= server_log)
-                    connection.sendall(data)
-                    break
-                # Let other connections    
-                else:
-                    print(f"No more data from {connection}", file= server_log)
-                    connections.remove(connection)
+                        print(f"Round {round_counter}: {client_node}", file= output)    # start the round
+                        print(f"Current DV = {client_dv}", file= output)                # the dv the client sent is the current dv
+                        last_dv = DV[nodes.index(client_node)]
+                        print(f"Last DV = {last_dv}", file= output)                     # the dv in the server is the last dv
                         
-            except Exception as e:
-                print(f"Connection: {connection} with Error: {e}", file= error_log)
-            
+                        update = (client_dv != last_dv)                                 # check if it was updated
+                        if update:
+                            print(f"Updated from last DV or the same? Updated")
 
-    # end of server
+                            DV[nodes.index(client_node)] = client_dv
+                        else:
+                            print(f"Updated from last DV or the same? Same")
+
+                        print(f"Forwarding data to {connection}", file= server_log)
+                        connection.sendall(data.encode())
+                        break  
+                    else:                                                               
+                        print(f"No more data from {connection}", file= server_log)      # Let other connections go  
+                        connections.remove(connection)
+                        num_conn -= 1
+                            
+                except Exception as e:
+                    print(f"Connection: {connection} with Error: {e}", file= error_log)
+
+    # 4 finally clean up the connections
     for each in connections:
         each.close()
-    server_socket.close()
+    server_socket.close()                                                               # end of server
 
 def forward_dv():
     pass
@@ -168,7 +141,6 @@ def main():
     try:
         # network_init()
         server_init()
-        server_action()
     finally:
         output.close()
         server_log.close()
