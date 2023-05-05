@@ -1,0 +1,235 @@
+Round 1: A
+Current DV = [0, 2, 10000, 10000, 1]
+Last DV = [0, 2, 10000, 10000, 1]
+Sending DV to node B
+Sending DV to node E
+Server node inside recv_dv_messages: [1, 10000, 10000, 1, 0]
+Updating DV at Node E
+No change in DV at Node E
+
+
+Round 1: B
+Current DV = [2, 0, 5, 10000, 10000]
+Last DV = [2, 0, 5, 10000, 10000]
+Sending DV to node A
+Server node inside recv_dv_messages: [0, 2, 10000, 10000, 1]
+Updating DV at Node A
+No change in DV at Node A
+
+
+Sending DV to node C
+Server node inside recv_dv_messages: [10000, 5, 0, 4, 10000]
+Updating DV at Node C
+No change in DV at Node C
+
+
+Round 1: C
+Current DV = [7, 5, 0, 4, 10000]
+Last DV = [7, 5, 0, 4, 10000]
+Sending DV to node A
+Server node inside recv_dv_messages: [0, 2, 7, 10000, 1]
+Updating DV at Node A
+No change in DV at Node A
+
+
+Sending DV to node B
+Server node inside recv_dv_messages: [2, 0, 5, 10000, 10000]
+Updating DV at Node B
+No change in DV at Node B
+
+
+Sending DV to node D
+Server node inside recv_dv_messages: [10000, 10000, 4, 0, 1]
+Updating DV at Node D
+No change in DV at Node D
+
+
+Round 1: D
+Current DV = [11, 9, 4, 0, 1]
+Last DV = [11, 9, 4, 0, 1]
+Sending DV to node A
+Server node inside recv_dv_messages: [0, 2, 7, 11, 1]
+Updating DV at Node A
+No change in DV at Node A
+
+
+Sending DV to node B
+Server node inside recv_dv_messages: [2, 0, 5, 9, 10000]
+Updating DV at Node B
+No change in DV at Node B
+
+
+Sending DV to node C
+Server node inside recv_dv_messages: [7, 5, 0, 4, 10000]
+Updating DV at Node C
+No change in DV at Node C
+
+
+Sending DV to node E
+Server node inside recv_dv_messages: [1, 3, 10000, 1, 0]
+Updating DV at Node E
+No change in DV at Node E
+
+
+Round 1: E
+Current DV = [1, 3, 5, 1, 0]
+Last DV = [1, 3, 5, 1, 0]
+Sending DV to node A
+Server node inside recv_dv_messages: [0, 2, 7, 11, 1]
+Updating DV at Node A
+No change in DV at Node A
+
+
+Sending DV to node B
+Server node inside recv_dv_messages: [2, 0, 5, 9, 10]
+Updating DV at Node B
+No change in DV at Node B
+
+
+Sending DV to node C
+Server node inside recv_dv_messages: [7, 5, 0, 4, 5]
+Updating DV at Node C
+No change in DV at Node C
+
+
+Sending DV to node D
+Server node inside recv_dv_messages: [11, 9, 4, 0, 1]
+Updating DV at Node D
+No change in DV at Node D
+
+
+Round 2: A
+Current DV = [0, 2, 6, 2, 1]
+Last DV = [0, 2, 6, 2, 1]
+Sending DV to node B
+Server node inside recv_dv_messages: [2, 0, 5, 9, 10]
+Updating DV at Node B
+No change in DV at Node B
+
+
+Sending DV to node C
+Server node inside recv_dv_messages: [6, 5, 0, 4, 5]
+Updating DV at Node C
+No change in DV at Node C
+
+
+Sending DV to node D
+Server node inside recv_dv_messages: [2, 4, 4, 0, 1]
+Updating DV at Node D
+No change in DV at Node D
+
+
+Sending DV to node E
+Server node inside recv_dv_messages: [1, 3, 5, 1, 0]
+Updating DV at Node E
+No change in DV at Node E
+
+
+Round 2: B
+Current DV = [2, 0, 5, 4, 3]
+Last DV = [2, 0, 5, 4, 3]
+Sending DV to node A
+Server node inside recv_dv_messages: [0, 2, 6, 2, 1]
+Updating DV at Node A
+No change in DV at Node A
+
+
+Sending DV to node C
+Server node inside recv_dv_messages: [6, 5, 0, 4, 5]
+Updating DV at Node C
+No change in DV at Node C
+
+
+Sending DV to node D
+Server node inside recv_dv_messages: [2, 4, 4, 0, 1]
+Updating DV at Node D
+No change in DV at Node D
+
+
+Sending DV to node E
+Server node inside recv_dv_messages: [1, 3, 5, 1, 0]
+Updating DV at Node E
+No change in DV at Node E
+
+
+Round 2: C
+Current DV = [6, 5, 0, 4, 5]
+Last DV = [6, 5, 0, 4, 5]
+Sending DV to node A
+Server node inside recv_dv_messages: [0, 2, 6, 2, 1]
+Updating DV at Node A
+No change in DV at Node A
+
+
+Sending DV to node B
+Server node inside recv_dv_messages: [2, 0, 5, 4, 3]
+Updating DV at Node B
+No change in DV at Node B
+
+
+Sending DV to node D
+Server node inside recv_dv_messages: [2, 4, 4, 0, 1]
+Updating DV at Node D
+No change in DV at Node D
+
+
+Sending DV to node E
+Server node inside recv_dv_messages: [1, 3, 5, 1, 0]
+Updating DV at Node E
+No change in DV at Node E
+
+
+Round 2: D
+Current DV = [2, 4, 4, 0, 1]
+Last DV = [2, 4, 4, 0, 1]
+Sending DV to node A
+Server node inside recv_dv_messages: [0, 2, 6, 2, 1]
+Updating DV at Node A
+No change in DV at Node A
+
+
+Sending DV to node B
+Server node inside recv_dv_messages: [2, 0, 5, 4, 3]
+Updating DV at Node B
+No change in DV at Node B
+
+
+Sending DV to node C
+Server node inside recv_dv_messages: [6, 5, 0, 4, 5]
+Updating DV at Node C
+No change in DV at Node C
+
+
+Sending DV to node E
+Server node inside recv_dv_messages: [1, 3, 5, 1, 0]
+Updating DV at Node E
+No change in DV at Node E
+
+
+Round 2: E
+Current DV = [1, 3, 5, 1, 0]
+Last DV = [1, 3, 5, 1, 0]
+Sending DV to node A
+Server node inside recv_dv_messages: [0, 2, 6, 2, 1]
+Updating DV at Node A
+No change in DV at Node A
+
+
+Sending DV to node B
+Server node inside recv_dv_messages: [2, 0, 5, 4, 3]
+Updating DV at Node B
+No change in DV at Node B
+
+
+Sending DV to node C
+Server node inside recv_dv_messages: [6, 5, 0, 4, 5]
+Updating DV at Node C
+No change in DV at Node C
+
+
+Sending DV to node D
+Server node inside recv_dv_messages: [2, 4, 4, 0, 1]
+Updating DV at Node D
+No change in DV at Node D
+
+

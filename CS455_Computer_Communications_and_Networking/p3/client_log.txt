@@ -1,5 +1,0 @@
-Node: A is connecting to the server
-Node: B is connecting to the server
-Node: C is connecting to the server
-Node: D is connecting to the server
-Node: E is connecting to the server

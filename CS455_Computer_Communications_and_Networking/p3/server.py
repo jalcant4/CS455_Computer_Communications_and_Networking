@@ -30,12 +30,12 @@ error_log = open("error_log.txt", "w+")                                         
 
 
 def server_init():
-    global server_socket
+    global server_socket, connections
     # Create a TCP/IP socket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Bind the socket to the port
-    print(f"Starting up on {SERVER_ADDRESS[0]} Port {SERVER_ADDRESS[1]}", file= server_log)
+    print(f"Starting up on {SERVER_ADDRESS[0]} Port {SERVER_ADDRESS[1]}")
     server_socket.bind(SERVER_ADDRESS)
 
     # 1 Listen for incoming connections
@@ -46,14 +46,14 @@ def server_init():
     num_conn = 0
     while num_conn < max_connections:
         
-        print(f"Waiting for a connection", file= server_log)
+        print(f"Waiting for a connection")
         
         connection, client_address = server_socket.accept()
         for key, value in ports.items():
             if value == client_address[1]:
                 client_node = key
         
-        # print(f"Client Node: {client_node}, Connection Address {client_address}", file= server_log)
+        # print(f"Client Node: {client_node}, Connection Address {client_address}")
         connections.append(connection)
         num_conn += 1
         
@@ -65,7 +65,7 @@ def server_init():
                 try:
                     data = connection.recv(BUFFER_SIZE)                                 # data
                     if data:
-                        print(f"Received {data.decode()}", file= server_log)
+                        print(f"Received {data.decode()}")
 
                         client_node, client_dv = data.split(":")
                         client_dv = [int(x) for x in client_dv[1:-1].split(",")]
@@ -83,11 +83,11 @@ def server_init():
                         else:
                             print(f"Updated from last DV or the same? Same")
 
-                        print(f"Forwarding data to {connection}", file= server_log)
+                        print(f"Forwarding data to {connection}")
                         connection.sendall(data.encode())
                         break  
                     else:                                                               
-                        print(f"No more data from {connection}", file= server_log)      # Let other connections go  
+                        print(f"No more data from {connection}")      # Let other connections go  
                         connections.remove(connection)
                         num_conn -= 1
                             
@@ -98,9 +98,6 @@ def server_init():
     for each in connections:
         each.close()
     server_socket.close()                                                               # end of server
-
-def forward_dv():
-    pass
 
 def update_dv(server_node, client_node, client_DV):
     global DV
@@ -142,6 +139,8 @@ def main():
         # network_init()
         server_init()
     finally:
+        for each in connections:
+            each.close()
         output.close()
         server_log.close()
 
